@@ -67,6 +67,8 @@ const InfoAssistant = () => {
     if (!query.trim()) return;
     
     setLoading(true);
+    setResponse('');
+    
     try {
       const response = await fetch('https://api.perplexity.ai/chat/completions', {
         method: 'POST',
@@ -87,11 +89,38 @@ const InfoAssistant = () => {
             }
           ],
           temperature: 0.7,
+          stream: true,
         }),
       });
-      
-      const data = await response.json();
-      setResponse(data.choices[0].message.content);
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No reader available');
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        // Convert the chunk to text
+        const chunk = new TextDecoder().decode(value);
+        const lines = chunk.split('\n').filter(line => line.trim() !== '');
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const jsonString = line.slice(6);
+            if (jsonString === '[DONE]') continue;
+            
+            try {
+              const jsonData = JSON.parse(jsonString);
+              const content = jsonData.choices[0].delta.content;
+              if (content) {
+                setResponse(prev => prev + content);
+              }
+            } catch (e) {
+              console.error('Error parsing JSON:', e);
+            }
+          }
+        }
+      }
     } catch (error) {
       console.error('Error:', error);
       toast({
@@ -117,16 +146,16 @@ const InfoAssistant = () => {
         <div className="w-10" /> {/* Spacer for centering */}
       </div>
 
-      <Card className="p-6 space-y-4 mehndi-border">
+      <Card className="p-6 space-y-4 bg-white shadow-lg rounded-xl border-2 border-accent/20">
         <div className="relative">
           <textarea
-            className="help-input min-h-[100px]"
+            className="w-full min-h-[100px] rounded-lg border-2 border-accent/20 p-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
             placeholder="Ask me anything - news, services, or general information..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
           <Button 
-            className="absolute right-2 bottom-2 bg-accent hover:bg-accent/90"
+            className="absolute right-2 bottom-2 bg-accent hover:bg-accent/90 text-white"
             onClick={toggleListening}
             variant="ghost"
             size="icon"
@@ -136,7 +165,7 @@ const InfoAssistant = () => {
         </div>
         
         <Button 
-          className="w-full bg-accent hover:bg-accent/90"
+          className="w-full bg-accent hover:bg-accent/90 text-white font-semibold"
           onClick={handleSubmit}
           disabled={loading}
         >
@@ -149,7 +178,7 @@ const InfoAssistant = () => {
         </Button>
 
         {response && (
-          <Card className="p-4 mt-4 prose prose-sm max-w-none">
+          <Card className="p-6 mt-4 prose prose-sm max-w-none bg-primary/50 rounded-lg border-2 border-accent/20">
             <ReactMarkdown>{response}</ReactMarkdown>
           </Card>
         )}
