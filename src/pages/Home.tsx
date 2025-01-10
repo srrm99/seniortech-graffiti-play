@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
-import { Gamepad2, Search, Heart } from 'lucide-react';
+import { Gamepad2, Search, Heart, Music2 } from 'lucide-react';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -35,6 +35,21 @@ const Home = () => {
               <div className="text-left">
                 <h2 className="text-2xl font-rozha text-accent">Games</h2>
                 <p className="text-sm font-poppins text-muted-foreground">Play engaging games designed for you</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card 
+            className="game-button group transform transition-all duration-300 hover:scale-105"
+            onClick={() => navigate('/companions')}
+          >
+            <div className="flex items-center space-x-4">
+              <div className="p-4 rounded-full bg-primary/20 group-hover:bg-primary/30 transition-colors">
+                <Music2 className="w-8 h-8 text-accent" />
+              </div>
+              <div className="text-left">
+                <h2 className="text-2xl font-rozha text-accent">Devotional Songs</h2>
+                <p className="text-sm font-poppins text-muted-foreground">Listen to peaceful devotional music</p>
               </div>
             </div>
           </Card>
