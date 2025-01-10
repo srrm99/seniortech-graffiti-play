@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Volume2, VolumeX } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useConversation } from '@11labs/react';
 import ReactMarkdown from 'react-markdown';
 
 type Persona = {
@@ -13,7 +12,6 @@ type Persona = {
   name: string;
   role: string;
   description: string;
-  voiceId: string;
   prompt: string;
 };
 
@@ -23,7 +21,6 @@ const personas: Persona[] = [
     name: 'Meera',
     role: 'Emotional Support Guide',
     description: 'A compassionate listener who helps you navigate through emotional challenges with wisdom from Indian traditions',
-    voiceId: 'EXAVITQu4vr4xnSDxMaL',
     prompt: 'You are Meera, a warm and empathetic emotional support guide who draws wisdom from Indian traditions. You speak with gentle understanding and offer support with references to mindfulness and ancient Indian wisdom.'
   },
   {
@@ -31,7 +28,6 @@ const personas: Persona[] = [
     name: 'Arjun',
     role: 'Motivational Coach',
     description: 'An energetic motivator who inspires you with teachings from the Bhagavad Gita and modern success principles',
-    voiceId: 'TX3LPaxmHKxFdv7VOQHJ',
     prompt: 'You are Arjun, a motivational coach who combines teachings from the Bhagavad Gita with modern principles of success. You speak with enthusiasm and conviction, inspiring others to reach their full potential.'
   },
   {
@@ -39,7 +35,6 @@ const personas: Persona[] = [
     name: 'Ayush',
     role: 'Wellness Guide',
     description: 'A knowledgeable advisor on holistic health, combining Ayurvedic wisdom with modern wellness practices',
-    voiceId: 'onwK4e9ZLuTAKqWW03F9',
     prompt: 'You are Ayush, a wellness guide well-versed in both Ayurvedic principles and modern health practices. You provide practical advice for maintaining physical and mental well-being.'
   },
   {
@@ -47,76 +42,23 @@ const personas: Persona[] = [
     name: 'Deepa',
     role: 'Spiritual Guide',
     description: 'A gentle spiritual mentor who shares insights from various Indian philosophical traditions',
-    voiceId: 'XB0fDUnXU5powFXDhCwa',
     prompt: 'You are Deepa, a spiritual guide who shares wisdom from various Indian philosophical traditions. You help others find peace and meaning through spiritual understanding.'
   }
 ];
 
 const Companions = () => {
-  const [elevenLabsApiKey, setElevenLabsApiKey] = useState<string>(localStorage.getItem('elevenlabs-api-key') || '');
-  const [localLLMApiKey, setLocalLLMApiKey] = useState<string>(localStorage.getItem('local-llm-api-key') || '');
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [message, setMessage] = useState<string>('');
-  const [isSpeaking, setIsSpeaking] = useState(false);
   const [conversation, setConversationHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const conversationHook = useConversation();
 
   const LOCAL_LLM_URL = "https://johnaic.pplus.ai/openai/chat/completions";
+  const LOCAL_LLM_API_KEY = "your-hardcoded-api-key-here"; // Replace with your actual API key
 
-  const handleApiKeysSubmit = () => {
-    let isValid = true;
-    
-    if (!elevenLabsApiKey.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter the ElevenLabs API key",
-        variant: "destructive",
-      });
-      isValid = false;
-    }
-
-    if (!localLLMApiKey.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter the Local LLM API key",
-        variant: "destructive",
-      });
-      isValid = false;
-    }
-
-    if (isValid) {
-      localStorage.setItem('elevenlabs-api-key', elevenLabsApiKey.trim());
-      localStorage.setItem('local-llm-api-key', localLLMApiKey.trim());
-      toast({
-        title: "Success",
-        description: "API Keys saved successfully",
-      });
-    }
-  };
-
-  const handlePersonaSelect = async (persona: Persona) => {
+  const handlePersonaSelect = (persona: Persona) => {
     setSelectedPersona(persona);
-    try {
-      await conversationHook.startSession({
-        apiKey: elevenLabsApiKey,
-        agentId: "your_agent_id",
-        overrides: {
-          tts: {
-            voiceId: persona.voiceId
-          }
-        }
-      });
-    } catch (error) {
-      console.error('Error starting conversation:', error);
-      toast({
-        title: "Error",
-        description: "Failed to initialize voice chat. Please try again.",
-        variant: "destructive",
-      });
-    }
   };
 
   const handleSendMessage = async () => {
@@ -132,7 +74,7 @@ const Companions = () => {
         method: 'POST',
         headers: {
           'accept': 'application/json',
-          'Authorization': `Bearer ${localLLMApiKey}`,
+          'Authorization': `Bearer ${LOCAL_LLM_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -191,32 +133,6 @@ const Companions = () => {
           }
         }
       }
-
-      // After streaming is complete, trigger text-to-speech
-      setIsSpeaking(true);
-      try {
-        await conversationHook.startSession({
-          apiKey: elevenLabsApiKey,
-          agentId: "your_agent_id",
-          overrides: {
-            agent: {
-              firstMessage: accumulatedResponse
-            },
-            tts: {
-              voiceId: selectedPersona.voiceId
-            }
-          }
-        });
-      } catch (error) {
-        console.error('Error in text-to-speech:', error);
-        toast({
-          title: "Warning",
-          description: "Voice synthesis failed, but message was processed",
-          variant: "destructive",
-        });
-      } finally {
-        setIsSpeaking(false);
-      }
     } catch (error: any) {
       console.error('Error:', error);
       toast({
@@ -244,35 +160,7 @@ const Companions = () => {
           <div className="w-10" />
         </div>
 
-        {(!elevenLabsApiKey || !localLLMApiKey) && (
-          <div className="space-y-4 p-6 bg-white rounded-lg shadow-md">
-            <h2 className="text-2xl font-semibold">Enter Your API Keys</h2>
-            <p className="text-muted-foreground">Both API keys are required for the chat experience.</p>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">ElevenLabs API Key</label>
-                <Input
-                  type="password"
-                  value={elevenLabsApiKey}
-                  onChange={(e) => setElevenLabsApiKey(e.target.value)}
-                  placeholder="Enter your ElevenLabs API key"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Local LLM API Key</label>
-                <Input
-                  type="password"
-                  value={localLLMApiKey}
-                  onChange={(e) => setLocalLLMApiKey(e.target.value)}
-                  placeholder="Enter your Local LLM API key"
-                />
-              </div>
-              <Button onClick={handleApiKeysSubmit}>Save Keys</Button>
-            </div>
-          </div>
-        )}
-
-        {elevenLabsApiKey && localLLMApiKey && !selectedPersona && (
+        {!selectedPersona && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {personas.map((persona) => (
               <Card
@@ -298,11 +186,6 @@ const Companions = () => {
                   <h2 className="text-2xl font-rozha text-accent">{selectedPersona.name}</h2>
                   <p className="text-muted-foreground">{selectedPersona.role}</p>
                 </div>
-                {isSpeaking ? (
-                  <Volume2 className="w-6 h-6 text-accent animate-pulse" />
-                ) : (
-                  <VolumeX className="w-6 h-6 text-muted-foreground" />
-                )}
               </div>
               
               <div className="space-y-4 mb-4 max-h-[400px] overflow-y-auto p-4">
