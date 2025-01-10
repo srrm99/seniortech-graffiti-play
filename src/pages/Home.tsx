@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
-import { Gamepad2, Search, Heart, Music2 } from 'lucide-react';
+import { Gamepad2, Search, Heart, Music2, BookOpen } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -22,9 +22,9 @@ const Home = () => {
   const [apiKey, setApiKey] = useState('');
 
   const handleDevotionalClick = () => {
-    const savedApiKey = localStorage.getItem('openai-api-key');
+    const savedApiKey = localStorage.getItem('local-llm-api-key');
     if (savedApiKey) {
-      navigate('/companions');
+      navigate('/daily-readings');
     } else {
       setShowApiKeyDialog(true);
     }
@@ -32,13 +32,13 @@ const Home = () => {
 
   const handleApiKeySubmit = () => {
     if (apiKey.trim()) {
-      localStorage.setItem('openai-api-key', apiKey.trim());
+      localStorage.setItem('local-llm-api-key', apiKey.trim());
       setShowApiKeyDialog(false);
       toast({
         title: "API Key Saved",
-        description: "Your OpenAI API key has been saved successfully.",
+        description: "Your API key has been saved successfully.",
       });
-      navigate('/companions');
+      navigate('/daily-readings');
     } else {
       toast({
         title: "Error",
@@ -88,7 +88,7 @@ const Home = () => {
           >
             <div className="flex items-center space-x-4">
               <div className="p-4 rounded-full bg-primary/20 group-hover:bg-primary/30 transition-colors">
-                <Heart className="w-8 h-8 text-accent" />
+                <BookOpen className="w-8 h-8 text-accent" />
               </div>
               <div className="text-left">
                 <h2 className="text-2xl font-rozha text-accent">Daily Readings</h2>
@@ -132,14 +132,14 @@ const Home = () => {
       <AlertDialog open={showApiKeyDialog} onOpenChange={setShowApiKeyDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>OpenAI API Key Required</AlertDialogTitle>
+            <AlertDialogTitle>API Key Required</AlertDialogTitle>
             <AlertDialogDescription>
-              To access daily readings and stories, please enter your OpenAI API key. You can get one from the OpenAI website.
+              To access daily readings and stories, please enter your Local LLM API key.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Input
             type="password"
-            placeholder="Enter your OpenAI API key"
+            placeholder="Enter your Local LLM API key"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
             className="my-4"

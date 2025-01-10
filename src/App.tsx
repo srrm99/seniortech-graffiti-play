@@ -6,8 +6,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LanguageSelection from "./pages/LanguageSelection";
 import Home from "./pages/Home";
 import Games from "./pages/Games";
-import InfoAssistant from "./pages/Help"; // renamed but keeping file as Help.tsx for now
+import InfoAssistant from "./pages/Help";
 import Companions from "./pages/Companions";
+import DailyReadings from "./pages/DailyReadings";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/games" element={<Games />} />
           <Route path="/info-assistant" element={<InfoAssistant />} />
           <Route path="/companions" element={<Companions />} />
+          <Route path="/daily-readings" element={<DailyReadings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </TooltipProvider>
