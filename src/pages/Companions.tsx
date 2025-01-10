@@ -1,40 +1,65 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Volume2, VolumeX } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import OpenAI from 'openai';
+import { useConversation } from '@11labs/react';
 
-type ContentCategory = 'devotional' | 'motivational' | 'stories' | 'wisdom';
-type ContentItem = {
-  title: string;
-  content: string;
-  category: ContentCategory;
+type Persona = {
+  id: string;
+  name: string;
+  role: string;
+  description: string;
+  voiceId: string;
+  prompt: string;
 };
+
+const personas: Persona[] = [
+  {
+    id: 'emotional-support',
+    name: 'Meera',
+    role: 'Emotional Support Guide',
+    description: 'A compassionate listener who helps you navigate through emotional challenges with wisdom from Indian traditions',
+    voiceId: 'EXAVITQu4vr4xnSDxMaL',
+    prompt: 'You are Meera, a warm and empathetic emotional support guide who draws wisdom from Indian traditions. You speak with gentle understanding and offer support with references to mindfulness and ancient Indian wisdom.'
+  },
+  {
+    id: 'motivation',
+    name: 'Arjun',
+    role: 'Motivational Coach',
+    description: 'An energetic motivator who inspires you with teachings from the Bhagavad Gita and modern success principles',
+    voiceId: 'TX3LPaxmHKxFdv7VOQHJ',
+    prompt: 'You are Arjun, a motivational coach who combines teachings from the Bhagavad Gita with modern principles of success. You speak with enthusiasm and conviction, inspiring others to reach their full potential.'
+  },
+  {
+    id: 'wellness',
+    name: 'Ayush',
+    role: 'Wellness Guide',
+    description: 'A knowledgeable advisor on holistic health, combining Ayurvedic wisdom with modern wellness practices',
+    voiceId: 'onwK4e9ZLuTAKqWW03F9',
+    prompt: 'You are Ayush, a wellness guide well-versed in both Ayurvedic principles and modern health practices. You provide practical advice for maintaining physical and mental well-being.'
+  },
+  {
+    id: 'spiritual',
+    name: 'Deepa',
+    role: 'Spiritual Guide',
+    description: 'A gentle spiritual mentor who shares insights from various Indian philosophical traditions',
+    voiceId: 'XB0fDUnXU5powFXDhCwa',
+    prompt: 'You are Deepa, a spiritual guide who shares wisdom from various Indian philosophical traditions. You help others find peace and meaning through spiritual understanding.'
+  }
+];
 
 const Companions = () => {
   const [apiKey, setApiKey] = useState<string>(localStorage.getItem('openai-api-key') || '');
-  const [selectedCategory, setSelectedCategory] = useState<ContentCategory | null>(null);
-  const [content, setContent] = useState<ContentItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
+  const [message, setMessage] = useState<string>('');
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  const categories: { id: ContentCategory; label: string; description: string }[] = [
-    { id: 'devotional', label: 'Devotional Readings', description: 'Spiritual and uplifting daily readings' },
-    { id: 'motivational', label: 'Motivational Content', description: 'Inspiring messages to brighten your day' },
-    { id: 'stories', label: 'Short Stories', description: 'Heartwarming tales from around the world' },
-    { id: 'wisdom', label: 'Daily Wisdom', description: 'Practical life lessons and insights' },
-  ];
+  const conversation = useConversation();
 
   const handleApiKeySubmit = () => {
     if (apiKey.trim()) {
@@ -52,17 +77,37 @@ const Companions = () => {
     }
   };
 
-  const fetchContent = async (category: ContentCategory) => {
-    setIsLoading(true);
+  const handlePersonaSelect = async (persona: Persona) => {
+    setSelectedPersona(persona);
+    try {
+      await conversation.startSession({
+        agentId: "your_agent_id", // Replace with your ElevenLabs agent ID
+        overrides: {
+          tts: {
+            voiceId: persona.voiceId
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error starting conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to initialize voice chat. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!message.trim() || !selectedPersona) return;
+
     const storedApiKey = localStorage.getItem('openai-api-key');
-    
     if (!storedApiKey) {
       toast({
         title: "API Key Required",
         description: "Please enter your OpenAI API key first",
         variant: "destructive",
       });
-      setIsLoading(false);
       return;
     }
 
@@ -74,34 +119,32 @@ const Companions = () => {
 
       const response = await openai.chat.completions.create({
         model: "gpt-4",
-        messages: [{
-          role: "system",
-          content: `Generate 4 short ${category} content pieces for senior citizens. Each should be readable in 1-2 minutes. Each piece should have a title and content. Make the content engaging, uplifting, and easy to understand. Use larger font-friendly formatting.`
-        }],
+        messages: [
+          {
+            role: "system",
+            content: selectedPersona.prompt
+          },
+          {
+            role: "user",
+            content: message
+          }
+        ],
       });
 
-      const generatedContent = response.choices[0].message.content;
-      const parsedContent = generatedContent?.split('\n\n')
-        .filter(item => item.trim())
-        .map(item => {
-          const [title, ...contentArr] = item.split('\n');
-          return {
-            title: title.replace(/^\d+\.\s*/, ''),
-            content: contentArr.join('\n'),
-            category
-          };
-        }) || [];
-
-      setContent(parsedContent);
-      setSelectedCategory(category);
+      const reply = response.choices[0].message.content;
+      if (reply) {
+        setIsSpeaking(true);
+        // Handle text-to-speech conversion here
+        await conversation.sendMessage(reply);
+        setIsSpeaking(false);
+      }
     } catch (error) {
+      console.error('Error:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch content. Please check your API key and try again.",
+        description: "Failed to process your message. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -116,14 +159,14 @@ const Companions = () => {
             <ArrowLeft className="w-6 h-6 mr-2" />
             Back
           </button>
-          <h1 className="text-4xl font-rozha text-accent">Daily Readings</h1>
+          <h1 className="text-4xl font-rozha text-accent">Talk to Someone</h1>
           <div className="w-10" />
         </div>
 
         {!apiKey && (
           <div className="space-y-4 p-6 bg-white rounded-lg shadow-md">
             <h2 className="text-2xl font-semibold">Enter Your OpenAI API Key</h2>
-            <p className="text-muted-foreground">This is required to generate personalized content for you.</p>
+            <p className="text-muted-foreground">This is required to chat with our companions.</p>
             <div className="flex gap-4">
               <Input
                 type="password"
@@ -137,54 +180,55 @@ const Companions = () => {
           </div>
         )}
 
-        {apiKey && !selectedCategory ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {categories.map((category) => (
-              <Button
-                key={category.id}
-                onClick={() => fetchContent(category.id)}
-                variant="outline"
-                className="p-6 h-auto text-lg font-poppins flex flex-col gap-2"
-                disabled={isLoading}
+        {apiKey && !selectedPersona && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {personas.map((persona) => (
+              <Card
+                key={persona.id}
+                className="cursor-pointer hover:border-accent transition-colors"
+                onClick={() => handlePersonaSelect(persona)}
               >
-                <span className="text-xl">{category.label}</span>
-                <span className="text-sm text-muted-foreground">{category.description}</span>
-              </Button>
+                <CardContent className="p-6">
+                  <h3 className="text-2xl font-rozha text-accent mb-2">{persona.name}</h3>
+                  <p className="text-lg font-semibold mb-2">{persona.role}</p>
+                  <p className="text-muted-foreground">{persona.description}</p>
+                </CardContent>
+              </Card>
             ))}
           </div>
-        ) : (
-          apiKey && content.length > 0 && (
-            <div className="w-full max-w-md mx-auto">
-              <Carousel className="w-full">
-                <CarouselContent>
-                  {content.map((item, index) => (
-                    <CarouselItem key={index}>
-                      <Card className="border-2 border-accent">
-                        <CardContent className="p-6">
-                          <h3 className="text-xl font-semibold mb-4">{item.title}</h3>
-                          <p className="text-muted-foreground text-lg leading-relaxed">{item.content}</p>
-                        </CardContent>
-                      </Card>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
-              <Button 
-                onClick={() => setSelectedCategory(null)} 
-                className="mt-4 w-full"
-                variant="outline"
-              >
-                Choose Different Category
-              </Button>
-            </div>
-          )
         )}
 
-        {isLoading && (
-          <div className="text-center">
-            <p className="text-lg">Loading your content...</p>
+        {selectedPersona && (
+          <div className="space-y-6">
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-2xl font-rozha text-accent">{selectedPersona.name}</h2>
+                  <p className="text-muted-foreground">{selectedPersona.role}</p>
+                </div>
+                {isSpeaking ? (
+                  <Volume2 className="w-6 h-6 text-accent animate-pulse" />
+                ) : (
+                  <VolumeX className="w-6 h-6 text-muted-foreground" />
+                )}
+              </div>
+              <div className="flex gap-4">
+                <Input
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Type your message..."
+                  className="flex-1"
+                />
+                <Button onClick={handleSendMessage}>Send</Button>
+              </div>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => setSelectedPersona(null)}
+              >
+                Choose Different Companion
+              </Button>
+            </Card>
           </div>
         )}
       </div>
