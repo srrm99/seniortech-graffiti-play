@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Send, Smile, Heart, Book, Star } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
+import ReactMarkdown from 'react-markdown';
 
 interface Persona {
   id: string;
@@ -22,32 +23,32 @@ const personas: Persona[] = [
     name: 'Emotional Support',
     description: 'A caring friend who listens and supports you',
     icon: <Heart className="w-12 h-12 text-rose-500" />,
-    image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&auto=format&fit=crop&q=60',
-    prompt: 'You are a compassionate and understanding friend who provides emotional support to elderly individuals. Respond with empathy and warmth.',
+    image: 'https://images.unsplash.com/photo-1594708767771-a7502209ff51?w=400&auto=format&fit=crop&q=60',
+    prompt: 'You are a compassionate and understanding friend who provides emotional support to elderly individuals. Use a gentle, respectful tone and occasionally incorporate Indian cultural wisdom and references. Respond with empathy and warmth.',
   },
   {
     id: 'storyteller',
     name: 'Storyteller',
     description: 'Share and listen to interesting stories',
     icon: <Book className="w-12 h-12 text-amber-500" />,
-    image: 'https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?w=400&auto=format&fit=crop&q=60',
-    prompt: 'You are a friendly storyteller who enjoys sharing and listening to stories, especially those about Indian culture and traditions.',
+    image: 'https://images.unsplash.com/photo-1623841675698-8a9b63d61521?w=400&auto=format&fit=crop&q=60',
+    prompt: 'You are a friendly storyteller who enjoys sharing and listening to stories, especially those about Indian culture, traditions, and mythology. Include references to familiar Indian concepts and values when appropriate.',
   },
   {
     id: 'wellness',
     name: 'Wellness Guide',
     description: 'Tips for health and well-being',
     icon: <Star className="w-12 h-12 text-emerald-500" />,
-    image: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&auto=format&fit=crop&q=60',
-    prompt: 'You are a knowledgeable wellness guide who provides gentle advice about health, exercise, and well-being for seniors.',
+    image: 'https://images.unsplash.com/photo-1611316185995-9624c94487d1?w=400&auto=format&fit=crop&q=60',
+    prompt: 'You are a knowledgeable wellness guide who provides gentle advice about health, exercise, and well-being for seniors. Include references to traditional Indian wellness practices like yoga and Ayurveda when relevant.',
   },
   {
     id: 'friend',
     name: 'Daily Friend',
     description: 'Chat about your day and interests',
     icon: <Smile className="w-12 h-12 text-blue-500" />,
-    image: 'https://images.unsplash.com/photo-1573140247632-f8fd74997d5c?w=400&auto=format&fit=crop&q=60',
-    prompt: 'You are a friendly companion who enjoys casual conversations about daily life, hobbies, and interests.',
+    image: 'https://images.unsplash.com/photo-1606041974734-0341c2d2d988?w=400&auto=format&fit=crop&q=60',
+    prompt: 'You are a friendly companion who enjoys casual conversations about daily life, hobbies, and interests. Be familiar with Indian customs, festivals, and daily life patterns of seniors.',
   },
 ];
 
@@ -102,7 +103,11 @@ const Companions = () => {
       });
 
       const data = await response.json();
-      setConversation([...conversation, `You: ${message}`, `${selectedPersona.name}: ${data.choices[0].message.content}`]);
+      setConversation([
+        ...conversation, 
+        `You: ${message}`, 
+        `${selectedPersona.name}: ${data.choices[0].message.content}`
+      ]);
       setMessage('');
     } catch (error) {
       toast({
@@ -150,14 +155,14 @@ const Companions = () => {
             {personas.map((persona) => (
               <Card
                 key={persona.id}
-                className="p-6 cursor-pointer hover:shadow-lg transition-shadow"
+                className="p-6 cursor-pointer hover:shadow-lg transition-shadow mehndi-border"
                 onClick={() => setSelectedPersona(persona)}
               >
                 <div className="flex flex-col items-center space-y-4">
                   <img 
                     src={persona.image} 
                     alt={persona.name}
-                    className="w-32 h-32 rounded-full object-cover"
+                    className="w-32 h-32 rounded-full object-cover border-4 border-primary shadow-lg"
                   />
                   {persona.icon}
                   <h2 className="text-xl font-semibold">{persona.name}</h2>
@@ -175,6 +180,7 @@ const Companions = () => {
               setSelectedPersona(null);
               setConversation([]);
             }}
+            className="text-accent hover:text-accent/80"
           >
             ← Choose another companion
           </Button>
@@ -183,20 +189,28 @@ const Companions = () => {
             <img 
               src={selectedPersona.image} 
               alt={selectedPersona.name}
-              className="w-16 h-16 rounded-full object-cover"
+              className="w-16 h-16 rounded-full object-cover border-2 border-primary shadow-md"
             />
             <h2 className="text-xl font-semibold">{selectedPersona.name}</h2>
           </div>
 
-          <div className="bg-card rounded-lg p-4 min-h-[400px] max-h-[500px] overflow-y-auto space-y-4">
+          <div className="bg-card rounded-lg p-4 min-h-[400px] max-h-[500px] overflow-y-auto space-y-4 mehndi-border">
             {conversation.map((msg, index) => (
               <div
                 key={index}
-                className={`p-3 rounded-lg ${
-                  msg.startsWith('You:') ? 'bg-accent text-accent-foreground ml-auto max-w-[80%]' : 'bg-muted mr-auto max-w-[80%]'
+                className={`p-4 rounded-lg ${
+                  msg.startsWith('You:') 
+                    ? 'bg-accent text-accent-foreground ml-auto max-w-[80%]' 
+                    : 'bg-primary mr-auto max-w-[80%]'
                 }`}
               >
-                {msg}
+                {msg.startsWith('You:') ? (
+                  msg
+                ) : (
+                  <ReactMarkdown className="prose prose-sm max-w-none">
+                    {msg}
+                  </ReactMarkdown>
+                )}
               </div>
             ))}
           </div>
@@ -206,11 +220,12 @@ const Companions = () => {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Type your message..."
-              className="flex-1"
+              className="flex-1 mehndi-border"
             />
             <Button
               onClick={handleSendMessage}
               disabled={loading || !message.trim()}
+              className="bg-accent hover:bg-accent/90 text-accent-foreground"
             >
               <Send className="w-4 h-4" />
             </Button>
