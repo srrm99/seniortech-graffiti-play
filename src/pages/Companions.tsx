@@ -11,7 +11,7 @@ const Companions = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Sample devotional music video IDs (in a real app, these would come from YouTube API)
+  // Sample devotional music video IDs
   const popularDevotionals = [
     { id: 'dqXHrWrF9YM', title: 'Om Jai Jagdish Hare' },
     { id: 'SqcY0GlETPk', title: 'Hanuman Chalisa' },
@@ -64,8 +64,9 @@ const Companions = () => {
               <iframe
                 width="100%"
                 height="100%"
-                src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+                src={`https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1`}
                 title="YouTube video player"
+                frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               ></iframe>
