@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useConversation } from '@11labs/react';
+import ReactMarkdown from 'react-markdown';
 
 type Persona = {
   id: string;
@@ -58,6 +59,7 @@ const Companions = () => {
   const [message, setMessage] = useState<string>('');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [conversation, setConversationHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
+  const [isStreaming, setIsStreaming] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const conversationHook = useConversation();
@@ -99,6 +101,7 @@ const Companions = () => {
     setSelectedPersona(persona);
     try {
       await conversationHook.startSession({
+        apiKey: elevenLabsApiKey,
         agentId: "your_agent_id",
         overrides: {
           tts: {
@@ -119,9 +122,10 @@ const Companions = () => {
   const handleSendMessage = async () => {
     if (!message.trim() || !selectedPersona) return;
 
-    // Add user message to conversation
     const userMessage = { role: 'user' as const, content: message };
     setConversationHistory(prev => [...prev, userMessage]);
+    setMessage('');
+    setIsStreaming(true);
 
     try {
       const response = await fetch(`${LOCAL_LLM_URL}?bypass_filter=false`, {
@@ -141,6 +145,7 @@ const Companions = () => {
             ...conversation,
             userMessage
           ],
+          stream: true,
         }),
       });
 
@@ -148,38 +153,69 @@ const Companions = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
-      console.log('LLM Response:', data);
-      const reply = data.choices?.[0]?.message?.content;
-      
-      if (reply) {
-        // Add assistant's reply to conversation
-        setConversationHistory(prev => [...prev, { role: 'assistant', content: reply }]);
-        
-        setIsSpeaking(true);
-        try {
-          await conversationHook.startSession({
-            agentId: "your_agent_id",
-            overrides: {
-              agent: {
-                firstMessage: reply
-              },
-              tts: {
-                voiceId: selectedPersona.voiceId
+      const reader = response.body?.getReader();
+      let accumulatedResponse = '';
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = new TextDecoder().decode(value);
+          const lines = chunk.split('\n').filter(line => line.trim() !== '');
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const jsonStr = line.slice(6);
+              if (jsonStr === '[DONE]') continue;
+              
+              try {
+                const data = JSON.parse(jsonStr);
+                const content = data.choices?.[0]?.delta?.content || '';
+                accumulatedResponse += content;
+                
+                setConversationHistory(prev => {
+                  const newHistory = [...prev];
+                  const lastMessage = newHistory[newHistory.length - 1];
+                  if (lastMessage && lastMessage.role === 'assistant') {
+                    lastMessage.content = accumulatedResponse;
+                  } else {
+                    newHistory.push({ role: 'assistant', content: accumulatedResponse });
+                  }
+                  return newHistory;
+                });
+              } catch (e) {
+                console.error('Error parsing streaming response:', e);
               }
             }
-          });
-        } catch (error) {
-          console.error('Error in text-to-speech:', error);
-          toast({
-            title: "Warning",
-            description: "Voice synthesis failed, but message was processed",
-            variant: "destructive",
-          });
-        } finally {
-          setIsSpeaking(false);
+          }
         }
-        setMessage('');
+      }
+
+      // After streaming is complete, trigger text-to-speech
+      setIsSpeaking(true);
+      try {
+        await conversationHook.startSession({
+          apiKey: elevenLabsApiKey,
+          agentId: "your_agent_id",
+          overrides: {
+            agent: {
+              firstMessage: accumulatedResponse
+            },
+            tts: {
+              voiceId: selectedPersona.voiceId
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Error in text-to-speech:', error);
+        toast({
+          title: "Warning",
+          description: "Voice synthesis failed, but message was processed",
+          variant: "destructive",
+        });
+      } finally {
+        setIsSpeaking(false);
       }
     } catch (error: any) {
       console.error('Error:', error);
@@ -188,6 +224,8 @@ const Companions = () => {
         description: error?.message || "Failed to process your message. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsStreaming(false);
     }
   };
 
@@ -268,17 +306,30 @@ const Companions = () => {
               </div>
               
               {/* Conversation Display */}
-              <div className="space-y-4 mb-4 max-h-[400px] overflow-y-auto">
+
+              {/* Conversation Display */}
+              <div className="space-y-4 mb-4 max-h-[400px] overflow-y-auto p-4">
                 {conversation.map((msg, index) => (
                   <div
                     key={index}
-                    className={`p-3 rounded-lg ${
+                    className={`p-4 rounded-lg ${
                       msg.role === 'user'
                         ? 'bg-primary/10 ml-12'
                         : 'bg-accent/10 mr-12'
                     }`}
                   >
-                    {msg.content}
+                    {msg.role === 'assistant' ? (
+                      <ReactMarkdown 
+                        className="prose prose-sm max-w-none dark:prose-invert"
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
+                    ) : (
+                      msg.content
+                    )}
+                    {msg.role === 'assistant' && index === conversation.length - 1 && isStreaming && (
+                      <span className="inline-block animate-pulse">▊</span>
+                    )}
                   </div>
                 ))}
               </div>
@@ -310,6 +361,3 @@ const Companions = () => {
       </div>
     </div>
   );
-};
-
-export default Companions;
