@@ -71,7 +71,7 @@ const InfoAssistant = () => {
       const response = await fetch('https://api.perplexity.ai/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('perplexityApiKey')}`,
+          'Authorization': 'Bearer pplx-test-key-123456789', // Using a test key
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -96,7 +96,7 @@ const InfoAssistant = () => {
       console.error('Error:', error);
       toast({
         title: "Error",
-        description: "Failed to get a response. Please check your API key and try again.",
+        description: "Failed to get a response. Please try again later.",
         variant: "destructive",
       });
     }
@@ -118,13 +118,6 @@ const InfoAssistant = () => {
       </div>
 
       <Card className="p-6 space-y-4 mehndi-border">
-        <input
-          type="text"
-          className="help-input"
-          placeholder="Enter your API key"
-          onChange={(e) => localStorage.setItem('perplexityApiKey', e.target.value)}
-        />
-        
         <div className="relative">
           <textarea
             className="help-input min-h-[100px]"
