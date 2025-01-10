@@ -71,7 +71,7 @@ const InfoAssistant = () => {
       const response = await fetch('https://api.perplexity.ai/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': 'Bearer pplx-test-key-123456789', // Using a test key
+          'Authorization': 'Bearer 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',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
