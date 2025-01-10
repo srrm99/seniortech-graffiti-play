@@ -305,9 +305,6 @@ const Companions = () => {
                 )}
               </div>
               
-              {/* Conversation Display */}
-
-              {/* Conversation Display */}
               <div className="space-y-4 mb-4 max-h-[400px] overflow-y-auto p-4">
                 {conversation.map((msg, index) => (
                   <div
@@ -361,3 +358,6 @@ const Companions = () => {
       </div>
     </div>
   );
+};
+
+export default Companions;
