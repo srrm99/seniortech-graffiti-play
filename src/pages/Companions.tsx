@@ -53,7 +53,8 @@ const personas: Persona[] = [
 ];
 
 const Companions = () => {
-  const [apiKey, setApiKey] = useState<string>(localStorage.getItem('openai-api-key') || '');
+  const [openaiApiKey, setOpenaiApiKey] = useState<string>(localStorage.getItem('openai-api-key') || '');
+  const [elevenLabsApiKey, setElevenLabsApiKey] = useState<string>(localStorage.getItem('elevenlabs-api-key') || '');
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [message, setMessage] = useState<string>('');
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -61,17 +62,18 @@ const Companions = () => {
   const { toast } = useToast();
   const conversation = useConversation();
 
-  const handleApiKeySubmit = () => {
-    if (apiKey.trim()) {
-      localStorage.setItem('openai-api-key', apiKey);
+  const handleApiKeysSubmit = () => {
+    if (openaiApiKey.trim() && elevenLabsApiKey.trim()) {
+      localStorage.setItem('openai-api-key', openaiApiKey);
+      localStorage.setItem('elevenlabs-api-key', elevenLabsApiKey);
       toast({
         title: "Success",
-        description: "API Key saved successfully",
+        description: "API Keys saved successfully",
       });
     } else {
       toast({
         title: "Error",
-        description: "Please enter a valid API key",
+        description: "Please enter both API keys",
         variant: "destructive",
       });
     }
@@ -81,7 +83,7 @@ const Companions = () => {
     setSelectedPersona(persona);
     try {
       await conversation.startSession({
-        agentId: "your_agent_id", // Replace with your ElevenLabs agent ID
+        agentId: "your_agent_id",
         overrides: {
           tts: {
             voiceId: persona.voiceId
@@ -101,11 +103,13 @@ const Companions = () => {
   const handleSendMessage = async () => {
     if (!message.trim() || !selectedPersona) return;
 
-    const storedApiKey = localStorage.getItem('openai-api-key');
-    if (!storedApiKey) {
+    const storedOpenaiKey = localStorage.getItem('openai-api-key');
+    const storedElevenLabsKey = localStorage.getItem('elevenlabs-api-key');
+    
+    if (!storedOpenaiKey || !storedElevenLabsKey) {
       toast({
-        title: "API Key Required",
-        description: "Please enter your OpenAI API key first",
+        title: "API Keys Required",
+        description: "Please enter both OpenAI and ElevenLabs API keys first",
         variant: "destructive",
       });
       return;
@@ -113,7 +117,7 @@ const Companions = () => {
 
     try {
       const openai = new OpenAI({
-        apiKey: storedApiKey,
+        apiKey: storedOpenaiKey,
         dangerouslyAllowBrowser: true
       });
 
@@ -134,7 +138,6 @@ const Companions = () => {
       const reply = response.choices[0].message.content;
       if (reply) {
         setIsSpeaking(true);
-        // Use the correct method to interact with the conversation
         await conversation.startSession({
           agentId: "your_agent_id",
           overrides: {
@@ -173,24 +176,35 @@ const Companions = () => {
           <div className="w-10" />
         </div>
 
-        {!apiKey && (
+        {(!openaiApiKey || !elevenLabsApiKey) && (
           <div className="space-y-4 p-6 bg-white rounded-lg shadow-md">
-            <h2 className="text-2xl font-semibold">Enter Your OpenAI API Key</h2>
-            <p className="text-muted-foreground">This is required to chat with our companions.</p>
-            <div className="flex gap-4">
-              <Input
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="Enter your OpenAI API key"
-                className="flex-1"
-              />
-              <Button onClick={handleApiKeySubmit}>Save Key</Button>
+            <h2 className="text-2xl font-semibold">Enter Your API Keys</h2>
+            <p className="text-muted-foreground">Both API keys are required to chat with our companions.</p>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">OpenAI API Key</label>
+                <Input
+                  type="password"
+                  value={openaiApiKey}
+                  onChange={(e) => setOpenaiApiKey(e.target.value)}
+                  placeholder="Enter your OpenAI API key"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">ElevenLabs API Key</label>
+                <Input
+                  type="password"
+                  value={elevenLabsApiKey}
+                  onChange={(e) => setElevenLabsApiKey(e.target.value)}
+                  placeholder="Enter your ElevenLabs API key"
+                />
+              </div>
+              <Button onClick={handleApiKeysSubmit}>Save Keys</Button>
             </div>
           </div>
         )}
 
-        {apiKey && !selectedPersona && (
+        {openaiApiKey && elevenLabsApiKey && !selectedPersona && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {personas.map((persona) => (
               <Card
