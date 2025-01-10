@@ -57,9 +57,10 @@ const Companions = () => {
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [message, setMessage] = useState<string>('');
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [conversation, setConversationHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const conversation = useConversation();
+  const conversationHook = useConversation();
 
   const LOCAL_LLM_URL = "https://johnaic.pplus.ai/openai/chat/completions";
 
@@ -97,7 +98,7 @@ const Companions = () => {
   const handlePersonaSelect = async (persona: Persona) => {
     setSelectedPersona(persona);
     try {
-      await conversation.startSession({
+      await conversationHook.startSession({
         agentId: "your_agent_id",
         overrides: {
           tts: {
@@ -118,6 +119,10 @@ const Companions = () => {
   const handleSendMessage = async () => {
     if (!message.trim() || !selectedPersona) return;
 
+    // Add user message to conversation
+    const userMessage = { role: 'user' as const, content: message };
+    setConversationHistory(prev => [...prev, userMessage]);
+
     try {
       const response = await fetch(`${LOCAL_LLM_URL}?bypass_filter=false`, {
         method: 'POST',
@@ -133,10 +138,8 @@ const Companions = () => {
               role: "system",
               content: selectedPersona.prompt
             },
-            {
-              role: "user",
-              content: message
-            }
+            ...conversation,
+            userMessage
           ],
         }),
       });
@@ -150,9 +153,12 @@ const Companions = () => {
       const reply = data.choices?.[0]?.message?.content;
       
       if (reply) {
+        // Add assistant's reply to conversation
+        setConversationHistory(prev => [...prev, { role: 'assistant', content: reply }]);
+        
         setIsSpeaking(true);
         try {
-          await conversation.startSession({
+          await conversationHook.startSession({
             agentId: "your_agent_id",
             overrides: {
               agent: {
@@ -170,8 +176,9 @@ const Companions = () => {
             description: "Voice synthesis failed, but message was processed",
             variant: "destructive",
           });
+        } finally {
+          setIsSpeaking(false);
         }
-        setIsSpeaking(false);
         setMessage('');
       }
     } catch (error: any) {
@@ -259,6 +266,23 @@ const Companions = () => {
                   <VolumeX className="w-6 h-6 text-muted-foreground" />
                 )}
               </div>
+              
+              {/* Conversation Display */}
+              <div className="space-y-4 mb-4 max-h-[400px] overflow-y-auto">
+                {conversation.map((msg, index) => (
+                  <div
+                    key={index}
+                    className={`p-3 rounded-lg ${
+                      msg.role === 'user'
+                        ? 'bg-primary/10 ml-12'
+                        : 'bg-accent/10 mr-12'
+                    }`}
+                  >
+                    {msg.content}
+                  </div>
+                ))}
+              </div>
+
               <div className="flex gap-4">
                 <Input
                   value={message}
