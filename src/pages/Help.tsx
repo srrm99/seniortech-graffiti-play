@@ -1,17 +1,70 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, Mic, MicOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import { useToast } from "@/components/ui/use-toast";
 
-const Help = () => {
+const InfoAssistant = () => {
   const [query, setQuery] = useState('');
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  let recognition: SpeechRecognition | null = null;
+
+  useEffect(() => {
+    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+      recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setQuery(transcript);
+        setIsListening(false);
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+        toast({
+          title: "Error",
+          description: "Failed to recognize speech. Please try again.",
+          variant: "destructive",
+        });
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+    }
+  }, []);
+
+  const toggleListening = () => {
+    if (!recognition) {
+      toast({
+        title: "Not Supported",
+        description: "Speech recognition is not supported in your browser.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isListening) {
+      recognition.stop();
+    } else {
+      recognition.start();
+      setIsListening(true);
+    }
+  };
 
   const handleSubmit = async () => {
+    if (!query.trim()) return;
+    
     setLoading(true);
     try {
       const response = await fetch('https://api.perplexity.ai/chat/completions', {
@@ -40,7 +93,11 @@ const Help = () => {
       setResponse(data.choices[0].message.content);
     } catch (error) {
       console.error('Error:', error);
-      setResponse("I'm sorry, I couldn't process your request. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to get a response. Please check your API key and try again.",
+        variant: "destructive",
+      });
     }
     setLoading(false);
   };
@@ -55,11 +112,11 @@ const Help = () => {
           <ArrowLeft className="w-6 h-6 mr-2" />
           Back
         </button>
-        <h1 className="text-3xl font-bold text-accent">Help & Support</h1>
+        <h1 className="text-3xl font-rozha text-accent">Information Assistant</h1>
         <div className="w-10" /> {/* Spacer for centering */}
       </div>
 
-      <Card className="p-6 space-y-4">
+      <Card className="p-6 space-y-4 mehndi-border">
         <input
           type="text"
           className="help-input"
@@ -67,12 +124,22 @@ const Help = () => {
           onChange={(e) => localStorage.setItem('perplexityApiKey', e.target.value)}
         />
         
-        <textarea
-          className="help-input min-h-[100px]"
-          placeholder="How can I help you today?"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+        <div className="relative">
+          <textarea
+            className="help-input min-h-[100px]"
+            placeholder="Ask me anything - news, services, or general information..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <Button 
+            className="absolute right-2 bottom-2 bg-accent hover:bg-accent/90"
+            onClick={toggleListening}
+            variant="ghost"
+            size="icon"
+          >
+            {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+          </Button>
+        </div>
         
         <Button 
           className="w-full bg-accent hover:bg-accent/90"
@@ -97,4 +164,4 @@ const Help = () => {
   );
 };
 
-export default Help;
+export default InfoAssistant;

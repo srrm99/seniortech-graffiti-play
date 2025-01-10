@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
-import { Gamepad2, HelpCircle, Heart } from 'lucide-react';
+import { Gamepad2, Search, Heart } from 'lucide-react';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -56,15 +56,15 @@ const Home = () => {
 
           <Card 
             className="game-button group transform transition-all duration-300 hover:scale-105"
-            onClick={() => navigate('/help')}
+            onClick={() => navigate('/info-assistant')}
           >
             <div className="flex items-center space-x-4">
               <div className="p-4 rounded-full bg-primary/20 group-hover:bg-primary/30 transition-colors">
-                <HelpCircle className="w-8 h-8 text-accent" />
+                <Search className="w-8 h-8 text-accent" />
               </div>
               <div className="text-left">
-                <h2 className="text-2xl font-rozha text-accent">Help & Support</h2>
-                <p className="text-sm font-poppins text-muted-foreground">Get assistance when you need it</p>
+                <h2 className="text-2xl font-rozha text-accent">Information Assistant</h2>
+                <p className="text-sm font-poppins text-muted-foreground">Get instant answers to your questions</p>
               </div>
             </div>
           </Card>

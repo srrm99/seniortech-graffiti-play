@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LanguageSelection from "./pages/LanguageSelection";
 import Home from "./pages/Home";
 import Games from "./pages/Games";
-import Help from "./pages/Help";
+import InfoAssistant from "./pages/Help"; // renamed but keeping file as Help.tsx for now
 import Companions from "./pages/Companions";
 
 const queryClient = new QueryClient();
@@ -21,7 +21,7 @@ const App = () => (
           <Route path="/" element={<LanguageSelection />} />
           <Route path="/home" element={<Home />} />
           <Route path="/games" element={<Games />} />
-          <Route path="/help" element={<Help />} />
+          <Route path="/info-assistant" element={<InfoAssistant />} />
           <Route path="/companions" element={<Companions />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
