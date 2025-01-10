@@ -134,8 +134,18 @@ const Companions = () => {
       const reply = response.choices[0].message.content;
       if (reply) {
         setIsSpeaking(true);
-        // Handle text-to-speech conversion here
-        await conversation.sendMessage(reply);
+        // Use the correct method to interact with the conversation
+        await conversation.startSession({
+          agentId: "your_agent_id",
+          overrides: {
+            agent: {
+              firstMessage: reply
+            },
+            tts: {
+              voiceId: selectedPersona.voiceId
+            }
+          }
+        });
         setIsSpeaking(false);
       }
     } catch (error) {
