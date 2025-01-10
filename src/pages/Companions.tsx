@@ -53,6 +53,7 @@ const personas: Persona[] = [
 
 const Companions = () => {
   const [elevenLabsApiKey, setElevenLabsApiKey] = useState<string>(localStorage.getItem('elevenlabs-api-key') || '');
+  const [localLLMApiKey, setLocalLLMApiKey] = useState<string>(localStorage.getItem('local-llm-api-key') || '');
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [message, setMessage] = useState<string>('');
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -61,20 +62,34 @@ const Companions = () => {
   const conversation = useConversation();
 
   const LOCAL_LLM_URL = "https://johnaic.pplus.ai/openai/chat/completions";
-  const LOCAL_LLM_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImYwZGRiNTgzLTEzZTAtNDQyZS1hZTA0LTQ5ZmJjZTFmODhiYSJ9.djeA_RnaSvMyR9qYnz_2GW08jRq9aC5LG5bOEWdvBL4";
 
   const handleApiKeysSubmit = () => {
-    if (elevenLabsApiKey.trim()) {
-      localStorage.setItem('elevenlabs-api-key', elevenLabsApiKey.trim());
-      toast({
-        title: "Success",
-        description: "ElevenLabs API Key saved successfully",
-      });
-    } else {
+    let isValid = true;
+    
+    if (!elevenLabsApiKey.trim()) {
       toast({
         title: "Error",
         description: "Please enter the ElevenLabs API key",
         variant: "destructive",
+      });
+      isValid = false;
+    }
+
+    if (!localLLMApiKey.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter the Local LLM API key",
+        variant: "destructive",
+      });
+      isValid = false;
+    }
+
+    if (isValid) {
+      localStorage.setItem('elevenlabs-api-key', elevenLabsApiKey.trim());
+      localStorage.setItem('local-llm-api-key', localLLMApiKey.trim());
+      toast({
+        title: "Success",
+        description: "API Keys saved successfully",
       });
     }
   };
@@ -108,7 +123,7 @@ const Companions = () => {
         method: 'POST',
         headers: {
           'accept': 'application/json',
-          'Authorization': `Bearer ${LOCAL_LLM_API_KEY}`,
+          'Authorization': `Bearer ${localLLMApiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -131,7 +146,7 @@ const Companions = () => {
       }
 
       const data = await response.json();
-      console.log('LLM Response:', data); // Debug log
+      console.log('LLM Response:', data);
       const reply = data.choices?.[0]?.message?.content;
       
       if (reply) {
@@ -184,10 +199,10 @@ const Companions = () => {
           <div className="w-10" />
         </div>
 
-        {!elevenLabsApiKey && (
+        {(!elevenLabsApiKey || !localLLMApiKey) && (
           <div className="space-y-4 p-6 bg-white rounded-lg shadow-md">
-            <h2 className="text-2xl font-semibold">Enter Your API Key</h2>
-            <p className="text-muted-foreground">ElevenLabs API key is required for voice chat.</p>
+            <h2 className="text-2xl font-semibold">Enter Your API Keys</h2>
+            <p className="text-muted-foreground">Both API keys are required for the chat experience.</p>
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">ElevenLabs API Key</label>
@@ -198,12 +213,21 @@ const Companions = () => {
                   placeholder="Enter your ElevenLabs API key"
                 />
               </div>
-              <Button onClick={handleApiKeysSubmit}>Save Key</Button>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Local LLM API Key</label>
+                <Input
+                  type="password"
+                  value={localLLMApiKey}
+                  onChange={(e) => setLocalLLMApiKey(e.target.value)}
+                  placeholder="Enter your Local LLM API key"
+                />
+              </div>
+              <Button onClick={handleApiKeysSubmit}>Save Keys</Button>
             </div>
           </div>
         )}
 
-        {elevenLabsApiKey && !selectedPersona && (
+        {elevenLabsApiKey && localLLMApiKey && !selectedPersona && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {personas.map((persona) => (
               <Card
