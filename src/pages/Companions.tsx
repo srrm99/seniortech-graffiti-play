@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, Smile, Heart, Book, Star } from 'lucide-react';
+import { ArrowLeft, Send, Smile, Heart, Book, Star, Volume2, VolumeX } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import ReactMarkdown from 'react-markdown';
 
@@ -15,6 +15,7 @@ interface Persona {
   icon: React.ReactNode;
   image: string;
   prompt: string;
+  voiceId: string;
 }
 
 const personas: Persona[] = [
@@ -25,6 +26,7 @@ const personas: Persona[] = [
     icon: <Heart className="w-12 h-12 text-rose-500" />,
     image: 'https://images.unsplash.com/photo-1594708767771-a7502209ff51?w=400&auto=format&fit=crop&q=60',
     prompt: 'You are a compassionate and understanding friend who provides emotional support to elderly individuals. Use a gentle, respectful tone and occasionally incorporate Indian cultural wisdom and references. Respond with empathy and warmth.',
+    voiceId: 'EXAVITQu4vr4xnSDxMaL', // Sarah voice
   },
   {
     id: 'storyteller',
@@ -33,6 +35,7 @@ const personas: Persona[] = [
     icon: <Book className="w-12 h-12 text-amber-500" />,
     image: 'https://images.unsplash.com/photo-1623841675698-8a9b63d61521?w=400&auto=format&fit=crop&q=60',
     prompt: 'You are a friendly storyteller who enjoys sharing and listening to stories, especially those about Indian culture, traditions, and mythology. Include references to familiar Indian concepts and values when appropriate.',
+    voiceId: 'TX3LPaxmHKxFdv7VOQHJ', // Liam voice
   },
   {
     id: 'wellness',
@@ -41,6 +44,7 @@ const personas: Persona[] = [
     icon: <Star className="w-12 h-12 text-emerald-500" />,
     image: 'https://images.unsplash.com/photo-1611316185995-9624c94487d1?w=400&auto=format&fit=crop&q=60',
     prompt: 'You are a knowledgeable wellness guide who provides gentle advice about health, exercise, and well-being for seniors. Include references to traditional Indian wellness practices like yoga and Ayurveda when relevant.',
+    voiceId: 'pFZP5JQG7iQjIQuC4Bku', // Lily voice
   },
   {
     id: 'friend',
@@ -49,6 +53,7 @@ const personas: Persona[] = [
     icon: <Smile className="w-12 h-12 text-blue-500" />,
     image: 'https://images.unsplash.com/photo-1606041974734-0341c2d2d988?w=400&auto=format&fit=crop&q=60',
     prompt: 'You are a friendly companion who enjoys casual conversations about daily life, hobbies, and interests. Be familiar with Indian customs, festivals, and daily life patterns of seniors.',
+    voiceId: 'onwK4e9ZLuTAKqWW03F9', // Daniel voice
   },
 ];
 
@@ -58,16 +63,77 @@ const Companions = () => {
   const [conversation, setConversation] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [apiKey, setApiKey] = useState(localStorage.getItem('openaiApiKey') || '');
+  const [elevenLabsKey, setElevenLabsKey] = useState(localStorage.getItem('elevenLabsKey') || '');
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSaveApiKey = () => {
+  const handleSaveKeys = () => {
     if (apiKey.trim()) {
       localStorage.setItem('openaiApiKey', apiKey.trim());
       toast({
-        title: "API Key Saved",
+        title: "OpenAI API Key Saved",
         description: "Your OpenAI API key has been saved successfully.",
       });
+    }
+    if (elevenLabsKey.trim()) {
+      localStorage.setItem('elevenLabsKey', elevenLabsKey.trim());
+      toast({
+        title: "ElevenLabs API Key Saved",
+        description: "Your ElevenLabs API key has been saved successfully.",
+      });
+    }
+  };
+
+  const speakText = async (text: string, voiceId: string) => {
+    const elevenLabsKey = localStorage.getItem('elevenLabsKey');
+    if (!elevenLabsKey) {
+      toast({
+        title: "ElevenLabs API Key Required",
+        description: "Please enter your ElevenLabs API key to use text-to-speech.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsSpeaking(true);
+      const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/' + voiceId, {
+        method: 'POST',
+        headers: {
+          'Accept': 'audio/mpeg',
+          'xi-api-key': elevenLabsKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text,
+          model_id: "eleven_multilingual_v2",
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.5,
+          }
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to generate speech');
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      
+      audio.onended = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(audioUrl);
+      };
+      
+      audio.play();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate speech. Please try again.",
+        variant: "destructive",
+      });
+      setIsSpeaking(false);
     }
   };
 
@@ -77,7 +143,7 @@ const Companions = () => {
     const storedApiKey = localStorage.getItem('openaiApiKey');
     if (!storedApiKey) {
       toast({
-        title: "API Key Required",
+        title: "OpenAI API Key Required",
         description: "Please enter your OpenAI API key first.",
         variant: "destructive",
       });
@@ -103,12 +169,17 @@ const Companions = () => {
       });
 
       const data = await response.json();
+      const aiResponse = data.choices[0].message.content;
+      
       setConversation([
         ...conversation, 
         `You: ${message}`, 
-        `${selectedPersona.name}: ${data.choices[0].message.content}`
+        `${selectedPersona.name}: ${aiResponse}`
       ]);
       setMessage('');
+      
+      // Automatically speak the AI response
+      speakText(aiResponse, selectedPersona.voiceId);
     } catch (error) {
       toast({
         title: "Error",
@@ -143,11 +214,18 @@ const Companions = () => {
               onChange={(e) => setApiKey(e.target.value)}
               className="help-input"
             />
+            <Input
+              type="password"
+              placeholder="Enter your ElevenLabs API key"
+              value={elevenLabsKey}
+              onChange={(e) => setElevenLabsKey(e.target.value)}
+              className="help-input"
+            />
             <Button 
-              onClick={handleSaveApiKey}
+              onClick={handleSaveKeys}
               className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
             >
-              Save API Key
+              Save API Keys
             </Button>
           </div>
 
@@ -192,6 +270,11 @@ const Companions = () => {
               className="w-16 h-16 rounded-full object-cover border-2 border-primary shadow-md"
             />
             <h2 className="text-xl font-semibold">{selectedPersona.name}</h2>
+            {isSpeaking ? (
+              <VolumeX className="w-6 h-6 text-muted-foreground animate-pulse" />
+            ) : (
+              <Volume2 className="w-6 h-6 text-muted-foreground" />
+            )}
           </div>
 
           <div className="bg-card rounded-lg p-4 min-h-[400px] max-h-[500px] overflow-y-auto space-y-4 mehndi-border">
