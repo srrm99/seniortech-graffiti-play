@@ -22,7 +22,7 @@ const Home = () => {
   const [apiKey, setApiKey] = useState('');
 
   const handleDevotionalClick = () => {
-    const savedApiKey = localStorage.getItem('youtube_api_key');
+    const savedApiKey = localStorage.getItem('openai-api-key');
     if (savedApiKey) {
       navigate('/companions');
     } else {
@@ -32,11 +32,11 @@ const Home = () => {
 
   const handleApiKeySubmit = () => {
     if (apiKey.trim()) {
-      localStorage.setItem('youtube_api_key', apiKey.trim());
+      localStorage.setItem('openai-api-key', apiKey.trim());
       setShowApiKeyDialog(false);
       toast({
         title: "API Key Saved",
-        description: "Your YouTube API key has been saved successfully.",
+        description: "Your OpenAI API key has been saved successfully.",
       });
       navigate('/companions');
     } else {
@@ -88,11 +88,11 @@ const Home = () => {
           >
             <div className="flex items-center space-x-4">
               <div className="p-4 rounded-full bg-primary/20 group-hover:bg-primary/30 transition-colors">
-                <Music2 className="w-8 h-8 text-accent" />
+                <Heart className="w-8 h-8 text-accent" />
               </div>
               <div className="text-left">
-                <h2 className="text-2xl font-rozha text-accent">Devotional Songs</h2>
-                <p className="text-sm font-poppins text-muted-foreground">Listen to peaceful devotional music</p>
+                <h2 className="text-2xl font-rozha text-accent">Daily Readings</h2>
+                <p className="text-sm font-poppins text-muted-foreground">Discover inspiring stories and wisdom</p>
               </div>
             </div>
           </Card>
@@ -132,14 +132,14 @@ const Home = () => {
       <AlertDialog open={showApiKeyDialog} onOpenChange={setShowApiKeyDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>YouTube API Key Required</AlertDialogTitle>
+            <AlertDialogTitle>OpenAI API Key Required</AlertDialogTitle>
             <AlertDialogDescription>
-              To access devotional songs, please enter your YouTube Data API key. You can get one from the Google Cloud Console.
+              To access daily readings and stories, please enter your OpenAI API key. You can get one from the OpenAI website.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Input
-            type="text"
-            placeholder="Enter your YouTube API key"
+            type="password"
+            placeholder="Enter your OpenAI API key"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
             className="my-4"
