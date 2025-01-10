@@ -4,35 +4,35 @@
 
 @layer base {
   :root {
-    --background: 39 100% 97%;
-    --foreground: 240 10% 4%;
+    --background: 60 100% 97%;
+    --foreground: 0 0% 20%;
     
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 4%;
+    --card-foreground: 0 0% 20%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 4%;
+    --popover-foreground: 0 0% 20%;
     
-    --primary: 24 95% 82%;
-    --primary-foreground: 240 10% 4%;
+    --primary: 48 100% 95%;
+    --primary-foreground: 0 0% 20%;
     
-    --secondary: 48 96% 89%;
-    --secondary-foreground: 240 10% 4%;
+    --secondary: 120 24% 63%;
+    --secondary-foreground: 0 0% 100%;
     
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
+    --muted: 48 100% 95%;
+    --muted-foreground: 0 0% 45%;
     
-    --accent: 348 65% 34%;
+    --accent: 345 100% 25%;
     --accent-foreground: 0 0% 100%;
     
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 24 95% 82%;
-    --input: 24 95% 82%;
-    --ring: 24 95% 82%;
+    --border: 48 100% 95%;
+    --input: 48 100% 95%;
+    --ring: 48 100% 95%;
     
-    --radius: 0.75rem;
+    --radius: 1rem;
   }
 }
 
@@ -41,8 +41,8 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
-    background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d946ef' fill-opacity='0.05'%3E%3Cpath d='M50 50c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c0 5.523-4.477 10-10 10s-10-4.477-10-10 4.477-10 10-10zM10 10c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c0 5.523-4.477 10-10 10S0 25.523 0 20s4.477-10 10-10zm10 8c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm40 40c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    @apply bg-background text-foreground font-poppins;
+    background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23800020' fill-opacity='0.05'%3E%3Cpath d='M50 50c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c0 5.523-4.477 10-10 10s-10-4.477-10-10 4.477-10 10-10zM10 10c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c0 5.523-4.477 10-10 10S0 25.523 0 20s4.477-10 10-10zm10 8c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm40 40c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   }
 }
 
@@ -56,7 +56,7 @@
 .mehndi-border::after {
   content: '';
   @apply absolute left-0 right-0 h-12 bg-repeat-x opacity-30;
-  background-image: url("data:image/svg+xml,%3Csvg width='120' height='48' viewBox='0 0 120 48' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M60 24c10 0 20-8 40-8s30 8 40 8v24c-10 0-20 8-40 8s-30-8-40-8C40 48 30 56 10 56s-30-8-40-8V24c10 0 20-8 40-8s30 8 40 8z' fill='%23d946ef' fill-opacity='0.4'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg width='120' height='48' viewBox='0 0 120 48' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M60 24c10 0 20-8 40-8s30 8 40 8v24c-10 0-20 8-40 8s-30-8-40-8C40 48 30 56 10 56s-30-8-40-8V24c10 0 20-8 40-8s30 8 40 8z' fill='%23800020' fill-opacity='0.4'/%3E%3C/svg%3E");
 }
 
 .mehndi-border::before {
@@ -67,18 +67,8 @@
   @apply -bottom-12 rotate-180;
 }
 
-.game-button {
-  @apply relative overflow-hidden rounded-lg bg-white p-6 text-lg font-poppins
-         transition-all hover:shadow-xl active:scale-95;
-  background-image: url("data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f472b6' fill-opacity='0.1'%3E%3Cpath d='M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-}
-
-.help-input {
-  @apply w-full rounded-lg border-2 border-primary bg-white p-4 text-lg font-poppins shadow-inner
-         focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/50;
-}
-
-.bg-pattern {
-  background-color: #fef7cd;
-  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23d946ef' fill-opacity='0.05'/%3E%3C/svg%3E");
+.feature-card {
+  @apply relative overflow-hidden rounded-xl bg-white p-6 text-lg font-poppins
+         transition-all hover:shadow-xl active:scale-95 border-2 border-primary;
+  background-image: url("data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23800020' fill-opacity='0.1'%3E%3Cpath d='M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
