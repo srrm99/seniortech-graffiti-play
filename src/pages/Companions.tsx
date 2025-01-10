@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
-import { Search, Volume2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Search, Volume2, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Companions = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [videoId, setVideoId] = useState('');
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   // Sample devotional music video IDs (in a real app, these would come from YouTube API)
@@ -30,15 +32,20 @@ const Companions = () => {
   return (
     <div className="min-h-screen bg-pattern p-6">
       <div className="max-w-4xl mx-auto space-y-8">
-        <div className="text-center space-y-4">
+        <div className="flex items-center justify-between">
+          <button 
+            onClick={() => navigate('/home')}
+            className="flex items-center text-accent hover:text-accent/80"
+          >
+            <ArrowLeft className="w-6 h-6 mr-2" />
+            Back
+          </button>
           <h1 className="text-4xl font-rozha text-accent">Devotional Music</h1>
-          <p className="text-lg text-muted-foreground">
-            Listen to peaceful devotional music to calm your mind and soul
-          </p>
+          <div className="w-10" />
         </div>
 
-        <div className="mehndi-border">
-          <form onSubmit={handleSearch} className="flex gap-4 mb-8">
+        <div className="space-y-8">
+          <form onSubmit={handleSearch} className="flex gap-4">
             <Input
               type="text"
               placeholder="Search for devotional songs..."

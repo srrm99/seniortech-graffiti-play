@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import TicTacToe from '@/components/games/TicTacToe';
-import Snake from '@/components/games/Snake';
+import WordSearch from '@/components/games/WordSearch';
 import MemoryGame from '@/components/games/MemoryGame';
 import { X, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -14,8 +14,8 @@ const Games = () => {
     switch(selectedGame) {
       case 'tictactoe':
         return <TicTacToe onClose={() => setSelectedGame(null)} />;
-      case 'snake':
-        return <Snake onClose={() => setSelectedGame(null)} />;
+      case 'wordsearch':
+        return <WordSearch onClose={() => setSelectedGame(null)} />;
       case 'memory':
         return <MemoryGame onClose={() => setSelectedGame(null)} />;
       default:
@@ -49,7 +49,7 @@ const Games = () => {
           Back
         </button>
         <h1 className="text-3xl font-bold text-accent">Games</h1>
-        <div className="w-10" /> {/* Spacer for centering */}
+        <div className="w-10" />
       </div>
 
       <div className="grid grid-cols-1 gap-6 max-w-xl mx-auto">
@@ -62,9 +62,9 @@ const Games = () => {
 
         <Card 
           className="game-button"
-          onClick={() => setSelectedGame('snake')}
+          onClick={() => setSelectedGame('wordsearch')}
         >
-          Snake Game
+          Word Search
         </Card>
 
         <Card 
