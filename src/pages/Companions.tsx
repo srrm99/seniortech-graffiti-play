@@ -64,8 +64,8 @@ const Companions = () => {
 
   const handleApiKeysSubmit = () => {
     if (openaiApiKey.trim() && elevenLabsApiKey.trim()) {
-      localStorage.setItem('openai-api-key', openaiApiKey);
-      localStorage.setItem('elevenlabs-api-key', elevenLabsApiKey);
+      localStorage.setItem('openai-api-key', openaiApiKey.trim());
+      localStorage.setItem('elevenlabs-api-key', elevenLabsApiKey.trim());
       toast({
         title: "Success",
         description: "API Keys saved successfully",
@@ -104,23 +104,23 @@ const Companions = () => {
     if (!message.trim() || !selectedPersona) return;
 
     const storedOpenaiKey = localStorage.getItem('openai-api-key');
-    const storedElevenLabsKey = localStorage.getItem('elevenlabs-api-key');
-    
-    if (!storedOpenaiKey || !storedElevenLabsKey) {
+    if (!storedOpenaiKey) {
       toast({
-        title: "API Keys Required",
-        description: "Please enter both OpenAI and ElevenLabs API keys first",
+        title: "API Key Required",
+        description: "Please enter your OpenAI API key first",
         variant: "destructive",
       });
       return;
     }
 
     try {
+      // Initialize OpenAI with the stored API key
       const openai = new OpenAI({
         apiKey: storedOpenaiKey,
         dangerouslyAllowBrowser: true
       });
 
+      // Make the API call
       const response = await openai.chat.completions.create({
         model: "gpt-4",
         messages: [
@@ -135,9 +135,11 @@ const Companions = () => {
         ],
       });
 
-      const reply = response.choices[0].message.content;
+      const reply = response.choices[0]?.message?.content;
+      
       if (reply) {
         setIsSpeaking(true);
+        // Start a new session with the reply as the first message
         await conversation.startSession({
           agentId: "your_agent_id",
           overrides: {
@@ -150,12 +152,14 @@ const Companions = () => {
           }
         });
         setIsSpeaking(false);
+        // Clear the message input after sending
+        setMessage('');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error);
       toast({
         title: "Error",
-        description: "Failed to process your message. Please try again.",
+        description: error?.message || "Failed to process your message. Please try again.",
         variant: "destructive",
       });
     }
@@ -242,6 +246,11 @@ const Companions = () => {
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Type your message..."
                   className="flex-1"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSendMessage();
+                    }
+                  }}
                 />
                 <Button onClick={handleSendMessage}>Send</Button>
               </div>
