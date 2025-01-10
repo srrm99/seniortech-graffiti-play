@@ -49,21 +49,11 @@ const DailyReadings = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const LOCAL_LLM_URL = "https://johnaic.pplus.ai/openai/chat/completions";
+  const LOCAL_LLM_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImYwZGRiNTgzLTEzZTAtNDQyZS1hZTA0LTQ5ZmJjZTFmODhiYSJ9.djeA_RnaSvMyR9qYnz_2GW08jRq9aC5LG5bOEWdvBL4";
 
   const generateReadings = async (readingType: ReadingType) => {
     setIsLoading(true);
     setSelectedType(readingType);
-    const localLLMApiKey = localStorage.getItem('local-llm-api-key');
-
-    if (!localLLMApiKey) {
-      toast({
-        title: "API Key Required",
-        description: "Please set your Local LLM API key in the Talk to Someone section first.",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-      return;
-    }
 
     try {
       // Generate 5 readings for the carousel
@@ -72,7 +62,7 @@ const DailyReadings = () => {
           method: 'POST',
           headers: {
             'accept': 'application/json',
-            'Authorization': `Bearer ${localLLMApiKey}`,
+            'Authorization': `Bearer ${LOCAL_LLM_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
