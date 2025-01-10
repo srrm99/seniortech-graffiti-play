@@ -1,9 +1,52 @@
 import { useNavigate } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
 import { Gamepad2, Search, Heart, Music2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { useState } from 'react';
+import { useToast } from "@/hooks/use-toast";
 
 const Home = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
+  const [apiKey, setApiKey] = useState('');
+
+  const handleDevotionalClick = () => {
+    const savedApiKey = localStorage.getItem('youtube_api_key');
+    if (savedApiKey) {
+      navigate('/companions');
+    } else {
+      setShowApiKeyDialog(true);
+    }
+  };
+
+  const handleApiKeySubmit = () => {
+    if (apiKey.trim()) {
+      localStorage.setItem('youtube_api_key', apiKey.trim());
+      setShowApiKeyDialog(false);
+      toast({
+        title: "API Key Saved",
+        description: "Your YouTube API key has been saved successfully.",
+      });
+      navigate('/companions');
+    } else {
+      toast({
+        title: "Error",
+        description: "Please enter a valid API key",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background p-6 space-y-8 bg-pattern">
@@ -41,7 +84,7 @@ const Home = () => {
 
           <Card 
             className="game-button group transform transition-all duration-300 hover:scale-105"
-            onClick={() => navigate('/companions')}
+            onClick={handleDevotionalClick}
           >
             <div className="flex items-center space-x-4">
               <div className="p-4 rounded-full bg-primary/20 group-hover:bg-primary/30 transition-colors">
@@ -85,6 +128,28 @@ const Home = () => {
           </Card>
         </div>
       </div>
+
+      <AlertDialog open={showApiKeyDialog} onOpenChange={setShowApiKeyDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>YouTube API Key Required</AlertDialogTitle>
+            <AlertDialogDescription>
+              To access devotional songs, please enter your YouTube Data API key. You can get one from the Google Cloud Console.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Input
+            type="text"
+            placeholder="Enter your YouTube API key"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            className="my-4"
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleApiKeySubmit}>Save & Continue</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
