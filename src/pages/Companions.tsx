@@ -104,8 +104,7 @@ const Companions = () => {
     if (!message.trim() || !selectedPersona) return;
 
     try {
-      // Make the API call to local LLM
-      const response = await fetch(LOCAL_LLM_URL + "?bypass_filter=false", {
+      const response = await fetch(`${LOCAL_LLM_URL}?bypass_filter=false`, {
         method: 'POST',
         headers: {
           'accept': 'application/json',
@@ -132,24 +131,32 @@ const Companions = () => {
       }
 
       const data = await response.json();
+      console.log('LLM Response:', data); // Debug log
       const reply = data.choices?.[0]?.message?.content;
       
       if (reply) {
         setIsSpeaking(true);
-        // Start a new session with the reply as the first message
-        await conversation.startSession({
-          agentId: "your_agent_id",
-          overrides: {
-            agent: {
-              firstMessage: reply
-            },
-            tts: {
-              voiceId: selectedPersona.voiceId
+        try {
+          await conversation.startSession({
+            agentId: "your_agent_id",
+            overrides: {
+              agent: {
+                firstMessage: reply
+              },
+              tts: {
+                voiceId: selectedPersona.voiceId
+              }
             }
-          }
-        });
+          });
+        } catch (error) {
+          console.error('Error in text-to-speech:', error);
+          toast({
+            title: "Warning",
+            description: "Voice synthesis failed, but message was processed",
+            variant: "destructive",
+          });
+        }
         setIsSpeaking(false);
-        // Clear the message input after sending
         setMessage('');
       }
     } catch (error: any) {
