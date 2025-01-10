@@ -5,7 +5,6 @@ import { ArrowLeft, Volume2, VolumeX } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import OpenAI from 'openai';
 import { useConversation } from '@11labs/react';
 
 type Persona = {
@@ -53,7 +52,6 @@ const personas: Persona[] = [
 ];
 
 const Companions = () => {
-  const [openaiApiKey, setOpenaiApiKey] = useState<string>(localStorage.getItem('openai-api-key') || '');
   const [elevenLabsApiKey, setElevenLabsApiKey] = useState<string>(localStorage.getItem('elevenlabs-api-key') || '');
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [message, setMessage] = useState<string>('');
@@ -62,18 +60,20 @@ const Companions = () => {
   const { toast } = useToast();
   const conversation = useConversation();
 
+  const LOCAL_LLM_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImYwZGRiNTgzLTEzZTAtNDQyZS1hZTA0LTQ5ZmJjZTFmODhiYSJ9.djeA_RnaSvMyR9qYnz_2GW08jRq9aC5LG5bOEWdvBL4";
+  const LOCAL_LLM_URL = "https://johnaic.pplus.ai/openai/chat/completions";
+
   const handleApiKeysSubmit = () => {
-    if (openaiApiKey.trim() && elevenLabsApiKey.trim()) {
-      localStorage.setItem('openai-api-key', openaiApiKey.trim());
+    if (elevenLabsApiKey.trim()) {
       localStorage.setItem('elevenlabs-api-key', elevenLabsApiKey.trim());
       toast({
         title: "Success",
-        description: "API Keys saved successfully",
+        description: "ElevenLabs API Key saved successfully",
       });
     } else {
       toast({
         title: "Error",
-        description: "Please enter both API keys",
+        description: "Please enter the ElevenLabs API key",
         variant: "destructive",
       });
     }
@@ -103,39 +103,36 @@ const Companions = () => {
   const handleSendMessage = async () => {
     if (!message.trim() || !selectedPersona) return;
 
-    const storedOpenaiKey = localStorage.getItem('openai-api-key');
-    if (!storedOpenaiKey) {
-      toast({
-        title: "API Key Required",
-        description: "Please enter your OpenAI API key first",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
-      // Initialize OpenAI with the stored API key
-      const openai = new OpenAI({
-        apiKey: storedOpenaiKey,
-        dangerouslyAllowBrowser: true
+      // Make the API call to local LLM
+      const response = await fetch(LOCAL_LLM_URL + "?bypass_filter=false", {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Authorization': `Bearer ${LOCAL_LLM_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: "neuralmagic/Meta-Llama-3.1-8B-Instruct-FP8",
+          messages: [
+            {
+              role: "system",
+              content: selectedPersona.prompt
+            },
+            {
+              role: "user",
+              content: message
+            }
+          ],
+        }),
       });
 
-      // Make the API call
-      const response = await openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [
-          {
-            role: "system",
-            content: selectedPersona.prompt
-          },
-          {
-            role: "user",
-            content: message
-          }
-        ],
-      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-      const reply = response.choices[0]?.message?.content;
+      const data = await response.json();
+      const reply = data.choices?.[0]?.message?.content;
       
       if (reply) {
         setIsSpeaking(true);
@@ -180,20 +177,11 @@ const Companions = () => {
           <div className="w-10" />
         </div>
 
-        {(!openaiApiKey || !elevenLabsApiKey) && (
+        {!elevenLabsApiKey && (
           <div className="space-y-4 p-6 bg-white rounded-lg shadow-md">
-            <h2 className="text-2xl font-semibold">Enter Your API Keys</h2>
-            <p className="text-muted-foreground">Both API keys are required to chat with our companions.</p>
+            <h2 className="text-2xl font-semibold">Enter Your API Key</h2>
+            <p className="text-muted-foreground">ElevenLabs API key is required for voice chat.</p>
             <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">OpenAI API Key</label>
-                <Input
-                  type="password"
-                  value={openaiApiKey}
-                  onChange={(e) => setOpenaiApiKey(e.target.value)}
-                  placeholder="Enter your OpenAI API key"
-                />
-              </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">ElevenLabs API Key</label>
                 <Input
@@ -203,12 +191,12 @@ const Companions = () => {
                   placeholder="Enter your ElevenLabs API key"
                 />
               </div>
-              <Button onClick={handleApiKeysSubmit}>Save Keys</Button>
+              <Button onClick={handleApiKeysSubmit}>Save Key</Button>
             </div>
           </div>
         )}
 
-        {openaiApiKey && elevenLabsApiKey && !selectedPersona && (
+        {elevenLabsApiKey && !selectedPersona && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {personas.map((persona) => (
               <Card
