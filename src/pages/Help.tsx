@@ -18,7 +18,8 @@ const InfoAssistant = () => {
 
   useEffect(() => {
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-      recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognitionAPI();
       recognition.continuous = false;
       recognition.interimResults = false;
 
