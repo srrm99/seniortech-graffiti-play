@@ -7,6 +7,7 @@ import LanguageSelection from "./pages/LanguageSelection";
 import Home from "./pages/Home";
 import Games from "./pages/Games";
 import Help from "./pages/Help";
+import Companions from "./pages/Companions";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,7 @@ const App = () => (
           <Route path="/home" element={<Home />} />
           <Route path="/games" element={<Games />} />
           <Route path="/help" element={<Help />} />
+          <Route path="/companions" element={<Companions />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
-import { Gamepad2, HelpCircle } from 'lucide-react';
+import { Gamepad2, HelpCircle, Heart } from 'lucide-react';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -18,6 +18,14 @@ const Home = () => {
         >
           <Gamepad2 className="w-12 h-12 mb-2 mx-auto" />
           <span className="block text-center">Games</span>
+        </Card>
+
+        <Card 
+          className="game-button"
+          onClick={() => navigate('/companions')}
+        >
+          <Heart className="w-12 h-12 mb-2 mx-auto text-rose-500" />
+          <span className="block text-center">Talk to Someone</span>
         </Card>
 
         <Card 
