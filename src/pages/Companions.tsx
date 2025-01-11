@@ -163,22 +163,12 @@ const Companions = () => {
       console.log('Response status:', response.status);
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API error response:', response.status, errorText);
-        throw new Error(`Failed to convert text to speech: ${errorText}`);
+        const errorText = await response.text(); // Read error response only once
+        console.error('Text to speech error response:', errorText);
+        throw new Error(`API Error: ${errorText}`);
       }
 
-      const audioBlob = await response.blob();
-      console.log('Audio blob received:', {
-        type: audioBlob.type,
-        size: audioBlob.size
-      });
-
-      if (!audioBlob.type.startsWith('audio/')) {
-        console.error('Invalid blob type:', audioBlob.type);
-        throw new Error('Invalid audio format received');
-      }
-
+      const audioBlob = await response.blob(); // Read successful response as blob
       const audioUrl = URL.createObjectURL(audioBlob);
 
       if (audioRef.current) {
@@ -195,11 +185,6 @@ const Companions = () => {
         URL.revokeObjectURL(audioUrl);
       };
 
-      audio.onerror = (e) => {
-        console.error('Audio playback error:', e);
-        throw new Error('Failed to play audio');
-      };
-
       setIsPlaying(messageId);
       await audio.play();
 
@@ -208,10 +193,7 @@ const Companions = () => {
         description: "The message is being played...",
       });
     } catch (error: any) {
-      console.error('Text to speech error:', {
-        message: error.message,
-        stack: error.stack
-      });
+      console.error('Text to speech error:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to play the message. Please try again.",
