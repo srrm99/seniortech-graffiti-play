@@ -50,6 +50,7 @@ const Companions = () => {
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [message, setMessage] = useState<string>('');
   const [conversation, setConversationHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -57,6 +58,9 @@ const Companions = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const LOCAL_LLM_URL = "https://johnaic.pplus.ai/openai/chat/completions";
+  const LOCAL_LLM_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImYwZGRiNTgzLTEzZTAtNDQyZS1hZTA0LTQ5ZmJjZTFmODhiYSJ9.djeA_RnaSvMyR9qYnz_2GW08jRq9aC5LG5bOEWdvBL4";
 
   const handlePersonaSelect = (persona: Persona) => {
     setSelectedPersona(persona);
@@ -86,7 +90,7 @@ const Companions = () => {
         title: "Recording Started",
         description: "Speak in Hindi...",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error accessing microphone:', error);
       toast({
         title: "Error",
@@ -109,6 +113,7 @@ const Companions = () => {
     formData.append('file', audioBlob);
     formData.append('language_code', 'hi-IN');
     formData.append('model', 'saarika:v1');
+    formData.append('with_timestamps', 'false');
 
     try {
       const response = await fetch('https://api.sarvam.ai/speech-to-text', {
@@ -141,9 +146,11 @@ const Companions = () => {
 
   const handleTextToSpeech = async (text: string, messageId: string) => {
     try {
+      // Split text into chunks of maximum 500 characters, breaking at sentence endings
       const chunks = text.match(/[^.!?]+[.!?]+/g) || [text];
       const validChunks = chunks.map(chunk => chunk.trim()).filter(chunk => chunk.length > 0);
 
+      // Stop any currently playing audio
       if (audioRef.current) {
         audioRef.current.pause();
         URL.revokeObjectURL(audioRef.current.src);
@@ -152,9 +159,14 @@ const Companions = () => {
 
       setIsPlaying(messageId);
 
+      // Process each chunk sequentially
       for (const chunk of validChunks) {
-        if (chunk.length > 500) continue;
+        if (chunk.length > 500) {
+          console.warn('Chunk too long, skipping:', chunk);
+          continue;
+        }
 
+        console.log('Processing chunk:', chunk);
         const response = await fetch('https://api.sarvam.ai/text-to-speech', {
           method: 'POST',
           headers: {
@@ -163,8 +175,8 @@ const Companions = () => {
           },
           body: JSON.stringify({
             inputs: [chunk],
-            language_code: 'hi-IN',
-            target_language_code: 'hi-IN',
+            language_code: 'hi-IN', // Source language
+            target_language_code: 'hi-IN', // Target language (required by API)
             model: 'saarika:v1'
           })
         });
@@ -178,9 +190,11 @@ const Companions = () => {
         const audioBlob = await response.blob();
         const audioUrl = URL.createObjectURL(audioBlob);
 
+        // Create and play audio
         const audio = new Audio(audioUrl);
         audioRef.current = audio;
 
+        // Wait for the current chunk to finish playing before proceeding
         await new Promise((resolve) => {
           audio.onended = () => {
             URL.revokeObjectURL(audioUrl);
@@ -190,12 +204,14 @@ const Companions = () => {
         });
       }
 
+      // Reset playing state after all chunks are done
       setIsPlaying(null);
+
       toast({
         title: "Playing audio",
         description: "The message is being played...",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Text to speech error:', error);
       toast({
         title: "Error",
@@ -206,24 +222,221 @@ const Companions = () => {
     }
   };
 
+  const stopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+      setIsPlaying(null);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!message.trim() || !selectedPersona) return;
+
+    const userMessage = { role: 'user' as const, content: message };
+    setConversationHistory(prev => [...prev, userMessage]);
+    setMessage('');
+    setIsStreaming(true);
+
+    try {
+      const response = await fetch(`${LOCAL_LLM_URL}?bypass_filter=false`, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Authorization': `Bearer ${LOCAL_LLM_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: "neuralmagic/Meta-Llama-3.1-8B-Instruct-FP8",
+          messages: [
+            {
+              role: "system",
+              content: selectedPersona.prompt
+            },
+            ...conversation,
+            userMessage
+          ],
+          stream: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      let accumulatedResponse = '';
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = new TextDecoder().decode(value);
+          const lines = chunk.split('\n').filter(line => line.trim() !== '');
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const jsonStr = line.slice(6);
+              if (jsonStr === '[DONE]') continue;
+              
+              try {
+                const data = JSON.parse(jsonStr);
+                const content = data.choices?.[0]?.delta?.content || '';
+                accumulatedResponse += content;
+                
+                setConversationHistory(prev => {
+                  const newHistory = [...prev];
+                  const lastMessage = newHistory[newHistory.length - 1];
+                  if (lastMessage && lastMessage.role === 'assistant') {
+                    lastMessage.content = accumulatedResponse;
+                  } else {
+                    newHistory.push({ role: 'assistant', content: accumulatedResponse });
+                  }
+                  return newHistory;
+                });
+              } catch (e) {
+                console.error('Error parsing streaming response:', e);
+              }
+            }
+          }
+        }
+      }
+    } catch (error: any) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to process your message. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsStreaming(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-pattern p-6">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
-          <button onClick={() => navigate('/home')} className="text-accent">
+          <button 
+            onClick={() => navigate('/home')}
+            className="flex items-center text-accent hover:text-accent/80"
+          >
             <ArrowLeft className="w-6 h-6 mr-2" />
             Back
           </button>
-          <h1 className="text-4xl">Talk to Someone</h1>
+          <h1 className="text-4xl font-rozha text-accent">Talk to Someone</h1>
+          <div className="w-10" />
         </div>
 
-        {selectedPersona ? (
-          <div>
-            {/* Conversation Section */}
+        {!selectedPersona && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {personas.map((persona) => (
+              <Card
+                key={persona.id}
+                className="cursor-pointer hover:border-accent transition-colors"
+                onClick={() => handlePersonaSelect(persona)}
+              >
+                <CardContent className="p-6">
+                  <h3 className="text-2xl font-rozha text-accent mb-2">{persona.name}</h3>
+                  <p className="text-lg font-semibold mb-2">{persona.role}</p>
+                  <p className="text-muted-foreground">{persona.description}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        ) : (
-          <div>
-            {/* Persona Selection */}
+        )}
+
+        {selectedPersona && (
+          <div className="space-y-6">
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-2xl font-rozha text-accent">{selectedPersona.name}</h2>
+                  <p className="text-muted-foreground">{selectedPersona.role}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-4 mb-4 max-h-[400px] overflow-y-auto p-4">
+                {conversation.map((msg, index) => (
+                  <div
+                    key={index}
+                    className={`p-4 rounded-lg ${
+                      msg.role === 'user'
+                        ? 'bg-primary/10 ml-12'
+                        : 'bg-accent/10 mr-12'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex-1">
+                        {msg.role === 'assistant' ? (
+                          <ReactMarkdown 
+                            className="prose prose-sm max-w-none dark:prose-invert"
+                          >
+                            {msg.content}
+                          </ReactMarkdown>
+                        ) : (
+                          msg.content
+                        )}
+                      </div>
+                      {msg.role === 'assistant' && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            if (isPlaying === `msg-${index}`) {
+                              stopAudio();
+                            } else {
+                              handleTextToSpeech(msg.content, `msg-${index}`);
+                            }
+                          }}
+                          className="flex-shrink-0"
+                        >
+                          <VolumeIcon 
+                            className={`h-5 w-5 ${isPlaying === `msg-${index}` ? 'text-accent' : ''}`}
+                          />
+                        </Button>
+                      )}
+                    </div>
+                    {msg.role === 'assistant' && index === conversation.length - 1 && isStreaming && (
+                      <span className="inline-block animate-pulse">▊</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-4">
+                <Input
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Type your message..."
+                  className="flex-1"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSendMessage();
+                    }
+                  }}
+                />
+                <Button
+                  variant={isRecording ? "destructive" : "secondary"}
+                  onClick={isRecording ? stopRecording : startRecording}
+                  className="w-12"
+                >
+                  {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                </Button>
+                <Button onClick={handleSendMessage}>Send</Button>
+              </div>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => {
+                  stopAudio();
+                  setSelectedPersona(null);
+                }}
+              >
+                Choose Different Companion
+              </Button>
+            </Card>
           </div>
         )}
       </div>
