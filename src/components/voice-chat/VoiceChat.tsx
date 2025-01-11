@@ -37,7 +37,7 @@ const VoiceChat = ({ persona, onClose }: VoiceChatProps) => {
   const connectToRoom = async () => {
     try {
       setIsConnecting(true);
-      // Initialize room
+      // Initialize room with the correct configuration
       const newRoom = new Room({
         adaptiveStream: true,
         dynacast: true,
@@ -46,24 +46,43 @@ const VoiceChat = ({ persona, onClose }: VoiceChatProps) => {
         },
       });
 
-      // Connect to LiveKit server
-      await newRoom.connect('YOUR_LIVEKIT_URL', 'YOUR_TOKEN');
+      // Connect to LiveKit server with proper URL and token
+      // Note: You'll need to set up a LiveKit server and generate tokens
+      const wsUrl = 'wss://your-livekit-server.com';  // Replace with your LiveKit server URL
+      const token = 'your-token-here'; // Replace with your token generation logic
+      
+      await newRoom.connect(wsUrl, token);
       
       // Enable local audio
-      const audioTrack = await createLocalAudioTrack();
+      const audioTrack = await createLocalAudioTrack({
+        echoCancellation: true,
+        noiseSuppression: true,
+      });
       await newRoom.localParticipant.publishTrack(audioTrack);
 
-      // Set up event listeners
+      // Set up event listeners with persona-specific handling
       newRoom.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
         console.log('Participant connected:', participant.identity);
         toast({
-          title: "AI Assistant Connected",
-          description: `${persona.name} has joined the conversation.`,
+          title: `${persona.name} Connected`,
+          description: `${persona.name} is ready to chat with you.`,
         });
       });
 
       newRoom.on(RoomEvent.ParticipantDisconnected, (participant: RemoteParticipant) => {
         console.log('Participant disconnected:', participant.identity);
+        toast({
+          title: `${persona.name} Disconnected`,
+          description: `${persona.name} has left the conversation.`,
+        });
+      });
+
+      // Handle audio data for AI processing
+      newRoom.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
+        if (track.kind === 'audio') {
+          // Here you would implement the logic to process the audio with your AI model
+          console.log('Audio track subscribed:', track.sid);
+        }
       });
 
       setRoom(newRoom);
@@ -71,7 +90,7 @@ const VoiceChat = ({ persona, onClose }: VoiceChatProps) => {
       
       toast({
         title: "Connected",
-        description: "Voice chat is now active.",
+        description: `Voice chat with ${persona.name} is now active.`,
       });
     } catch (error: any) {
       console.error('Failed to connect to room:', error);
@@ -92,7 +111,7 @@ const VoiceChat = ({ persona, onClose }: VoiceChatProps) => {
       setIsConnected(false);
       toast({
         title: "Disconnected",
-        description: "Voice chat has ended.",
+        description: `Voice chat with ${persona.name} has ended.`,
       });
     }
   };
