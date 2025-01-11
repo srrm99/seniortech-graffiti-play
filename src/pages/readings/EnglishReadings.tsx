@@ -31,7 +31,7 @@ const readingTypes: ReadingType[] = [
     id: 'story',
     title: 'Story',
     description: 'Meaningful short stories',
-    prompt: 'Write a very short story in English (maximum 3 paragraphs) with a clear moral lesson that seniors can relate to. Focus on family, friendship, or kindness.'
+    prompt: 'Write a very short story in English (maximum 2 paragraphs) with a clear moral lesson that seniors can relate to. Focus on family values or kindness. Keep it brief and engaging.'
   },
   {
     id: 'wisdom',
