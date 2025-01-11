@@ -21,16 +21,7 @@ interface UserPreferences {
     currentStreak: number;
     bestStreak: number;
   };
-}
-
-interface UserPreferencesContextType {
-  preferences: UserPreferences;
-  updateUserName: (name: string) => void;
-  toggleTheme: () => void;
-  toggleFavorite: (feature: string) => void;
-  isFavorite: (feature: string) => boolean;
-  unlockAchievement: (id: string) => void;
-  updateGameStats: (won: boolean) => void;
+  language: 'english' | 'hindi';
 }
 
 const defaultPreferences: UserPreferences = {
@@ -62,10 +53,22 @@ const defaultPreferences: UserPreferences = {
     gamesWon: 0,
     currentStreak: 0,
     bestStreak: 0
-  }
+  },
+  language: 'english'
 };
 
 const UserPreferencesContext = createContext<UserPreferencesContextType | undefined>(undefined);
+
+interface UserPreferencesContextType {
+  preferences: UserPreferences;
+  updateUserName: (name: string) => void;
+  toggleTheme: () => void;
+  toggleFavorite: (feature: string) => void;
+  isFavorite: (feature: string) => boolean;
+  unlockAchievement: (id: string) => void;
+  updateGameStats: (won: boolean) => void;
+  setLanguage: (lang: 'english' | 'hindi') => void;
+}
 
 export const UserPreferencesProvider = ({ children }: { children: React.ReactNode }) => {
   const [preferences, setPreferences] = useState<UserPreferences>(() => {
@@ -138,6 +141,13 @@ export const UserPreferencesProvider = ({ children }: { children: React.ReactNod
     });
   };
 
+  const setLanguage = (lang: 'english' | 'hindi') => {
+    setPreferences(prev => ({
+      ...prev,
+      language: lang
+    }));
+  };
+
   return (
     <UserPreferencesContext.Provider
       value={{
@@ -148,6 +158,7 @@ export const UserPreferencesProvider = ({ children }: { children: React.ReactNod
         isFavorite,
         unlockAchievement,
         updateGameStats,
+        setLanguage,
       }}
     >
       {children}

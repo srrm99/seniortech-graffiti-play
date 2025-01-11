@@ -17,27 +17,27 @@ type ReadingType = {
 const readingTypes: ReadingType[] = [
   {
     id: 'devotional',
-    title: 'Devotional',
-    description: 'Daily spiritual readings and reflections',
-    prompt: 'Generate an inspiring devotional reading about faith, hope, and spiritual growth. Include a short reflection question at the end.'
+    title: 'धार्मिक',
+    description: 'दैनिक आध्यात्मिक पाठ और चिंतन',
+    prompt: 'Generate an inspiring devotional reading in Hindi about faith, hope, and spiritual growth. Include a short reflection question at the end.'
   },
   {
     id: 'motivational',
-    title: 'Motivational',
-    description: 'Uplifting stories and quotes to inspire',
-    prompt: 'Create a motivational reading with an inspiring real-life story and a powerful message about perseverance and growth.'
+    title: 'प्रेरणादायक',
+    description: 'प्रेरित करने वाली कहानियां और विचार',
+    prompt: 'Create a motivational reading in Hindi with an inspiring real-life story and a powerful message about perseverance and growth.'
   },
   {
     id: 'story',
-    title: 'Story',
-    description: 'Engaging short stories with meaning',
-    prompt: 'Write a heartwarming short story with moral values and life lessons that seniors can relate to.'
+    title: 'कहानी',
+    description: 'सार्थक लघु कथाएं',
+    prompt: 'Write a heartwarming short story in Hindi with moral values and life lessons that seniors can relate to.'
   },
   {
     id: 'wisdom',
-    title: 'Daily Wisdom',
-    description: 'Practical wisdom for everyday life',
-    prompt: 'Share a piece of practical wisdom or life advice, drawing from traditional knowledge and modern insights.'
+    title: 'दैनिक ज्ञान',
+    description: 'दैनिक जीवन के लिए व्यावहारिक ज्ञान',
+    prompt: 'Share a piece of practical wisdom or life advice in Hindi, drawing from traditional knowledge and modern insights.'
   }
 ];
 
