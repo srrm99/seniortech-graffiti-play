@@ -7,28 +7,28 @@ import { motion } from "framer-motion";
 const menuItems = {
   english: [
     {
-      icon: GamepadIcon,
+      Icon: GamepadIcon,
       title: "Games",
       description: "Play engaging games designed for seniors",
       path: "/games",
       gradient: "from-orange-400 to-pink-500"
     },
     {
-      icon: HeartHandshake,
+      Icon: HeartHandshake,
       title: "Talk to Someone",
       description: "Have a conversation with an AI companion",
       path: "/companions/english",
       gradient: "from-purple-400 to-blue-500"
     },
     {
-      icon: Book,
+      Icon: Book,
       title: "Daily Readings",
       description: "Enjoy daily readings and stories",
       path: "/readings/english",
       gradient: "from-green-400 to-teal-500"
     },
     {
-      icon: HelpCircle,
+      Icon: HelpCircle,
       title: "Help & Information",
       description: "Get help and learn how to use the app",
       path: "/info-assistant",
@@ -37,28 +37,28 @@ const menuItems = {
   ],
   hindi: [
     {
-      icon: GamepadIcon,
+      Icon: GamepadIcon,
       title: "खेल",
       description: "वरिष्ठ नागरिकों के लिए डिज़ाइन किए गए खेल खेलें",
       path: "/games",
       gradient: "from-orange-400 to-pink-500"
     },
     {
-      icon: HeartHandshake,
+      Icon: HeartHandshake,
       title: "किसी से बात करें",
       description: "एआई साथी से बातचीत करें",
       path: "/companions/hindi",
       gradient: "from-purple-400 to-blue-500"
     },
     {
-      icon: Book,
+      Icon: Book,
       title: "दैनिक पाठ",
       description: "दैनिक पाठ और कहानियों का आनंद लें",
       path: "/readings/hindi",
       gradient: "from-green-400 to-teal-500"
     },
     {
-      icon: HelpCircle,
+      Icon: HelpCircle,
       title: "सहायता और जानकारी",
       description: "ऐप का उपयोग करने में मदद और जानकारी प्राप्त करें",
       path: "/info-assistant",
@@ -121,24 +121,24 @@ const Home = () => {
           animate="show"
           className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6"
         >
-          {currentMenuItems.map((item, index) => (
+          {currentMenuItems.map((menuItem, index) => (
             <motion.div
-              key={item.path}
+              key={menuItem.path}
               variants={item}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               <Card
-                className={`p-6 cursor-pointer bg-gradient-to-br ${item.gradient} hover:shadow-lg transition-all duration-300 border-none`}
-                onClick={() => navigate(item.path)}
+                className={`p-6 cursor-pointer bg-gradient-to-br ${menuItem.gradient} hover:shadow-lg transition-all duration-300 border-none`}
+                onClick={() => navigate(menuItem.path)}
               >
                 <div className="flex items-center gap-4 text-white">
                   <div className="p-3 bg-white/20 rounded-full">
-                    <item.icon className="w-8 h-8" />
+                    <menuItem.Icon className="w-8 h-8" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-rozha mb-1">{item.title}</h2>
-                    <p className="text-sm opacity-90">{item.description}</p>
+                    <h2 className="text-2xl font-rozha mb-1">{menuItem.title}</h2>
+                    <p className="text-sm opacity-90">{menuItem.description}</p>
                   </div>
                 </div>
               </Card>
