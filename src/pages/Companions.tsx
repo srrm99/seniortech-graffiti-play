@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import ReactMarkdown from 'react-markdown';
+import VoiceChat from '@/components/voice-chat/VoiceChat';
+import ChatModeSelect from '@/components/voice-chat/ChatModeSelect';
 
 type Persona = {
   id: string;
@@ -48,6 +50,7 @@ const personas: Persona[] = [
 
 const Companions = () => {
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
+  const [chatMode, setChatMode] = useState<'text' | 'voice' | null>(null);
   const [message, setMessage] = useState<string>('');
   const [conversation, setConversationHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -64,6 +67,16 @@ const Companions = () => {
 
   const handlePersonaSelect = (persona: Persona) => {
     setSelectedPersona(persona);
+    setChatMode(null);
+  };
+
+  const handleChatModeSelect = (mode: 'text' | 'voice') => {
+    setChatMode(mode);
+  };
+
+  const handleClose = () => {
+    setSelectedPersona(null);
+    setChatMode(null);
   };
 
   const startRecording = async () => {
@@ -146,11 +159,9 @@ const Companions = () => {
 
   const handleTextToSpeech = async (text: string, messageId: string) => {
     try {
-      // Split text into manageable chunks
       const chunks = text.match(/[^.!?]+[.!?]+/g) || [text];
       const validChunks = chunks.map(chunk => chunk.trim()).filter(chunk => chunk.length > 0);
 
-      // Stop any currently playing audio
       if (audioRef.current) {
         audioRef.current.pause();
         URL.revokeObjectURL(audioRef.current.src);
@@ -159,7 +170,6 @@ const Companions = () => {
 
       setIsPlaying(messageId);
 
-      // Process each chunk sequentially
       for (const chunk of validChunks) {
         if (chunk.length > 500) {
           console.warn('Chunk too long, skipping:', chunk);
@@ -184,7 +194,6 @@ const Companions = () => {
           })
         });
 
-        // Handle response
         if (!response.ok) {
           const errorText = await response.text();
           console.error('Text-to-Speech API Error:', errorText);
@@ -194,11 +203,9 @@ const Companions = () => {
         const audioBlob = await response.blob();
         const audioUrl = URL.createObjectURL(audioBlob);
 
-        // Play audio
         const audio = new Audio(audioUrl);
         audioRef.current = audio;
 
-        // Handle playback
         await new Promise((resolve, reject) => {
           audio.onended = () => {
             URL.revokeObjectURL(audioUrl);
@@ -355,7 +362,21 @@ const Companions = () => {
           </div>
         )}
 
-        {selectedPersona && (
+        {selectedPersona && !chatMode && (
+          <ChatModeSelect
+            onSelectMode={handleChatModeSelect}
+            onClose={handleClose}
+          />
+        )}
+
+        {selectedPersona && chatMode === 'voice' && (
+          <VoiceChat
+            persona={selectedPersona}
+            onClose={() => setChatMode(null)}
+          />
+        )}
+
+        {selectedPersona && chatMode === 'text' && (
           <div className="space-y-6">
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
