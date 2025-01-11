@@ -160,8 +160,8 @@ const Companions = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Text to speech error:', errorData);
+        const errorText = await response.text();
+        console.error('Text to speech error:', errorText);
         throw new Error('Failed to convert text to speech');
       }
 
@@ -182,7 +182,7 @@ const Companions = () => {
       };
 
       setIsPlaying(messageId);
-      audio.play();
+      await audio.play();
 
       toast({
         title: "Playing audio",
