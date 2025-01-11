@@ -175,9 +175,9 @@ const Companions = () => {
           },
           body: JSON.stringify({
             inputs: [chunk],
-            language_code: 'hi-IN', // Source language
-            target_language_code: 'hi-IN', // Target language (required by API)
-            model: 'saarika:v1'
+            language_code: 'hi-IN',
+            target_language_code: 'hi-IN',
+            model: 'bulbul:v1'  // Changed from 'saarika:v1' to 'bulbul:v1'
           })
         });
 
