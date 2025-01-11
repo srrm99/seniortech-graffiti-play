@@ -21,7 +21,7 @@ const menuItems = {
       icon: Book,
       title: "Daily Readings",
       description: "Enjoy daily readings and stories",
-      path: "/daily-readings"
+      path: "/readings/english"
     },
     {
       icon: HelpCircle,
@@ -47,7 +47,7 @@ const menuItems = {
       icon: Book,
       title: "दैनिक पाठ",
       description: "दैनिक पाठ और कहानियों का आनंद लें",
-      path: "/daily-readings"
+      path: "/readings/hindi"
     },
     {
       icon: HelpCircle,

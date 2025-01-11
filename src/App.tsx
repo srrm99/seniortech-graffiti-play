@@ -10,7 +10,8 @@ import Games from "./pages/Games";
 import InfoAssistant from "./pages/Help";
 import EnglishCompanions from "./pages/companions/EnglishCompanions";
 import HindiCompanions from "./pages/companions/HindiCompanions";
-import DailyReadings from "./pages/DailyReadings";
+import EnglishReadings from "./pages/readings/EnglishReadings";
+import HindiReadings from "./pages/readings/HindiReadings";
 
 const queryClient = new QueryClient();
 
@@ -28,7 +29,8 @@ const App = () => (
             <Route path="/info-assistant" element={<InfoAssistant />} />
             <Route path="/companions/english" element={<EnglishCompanions />} />
             <Route path="/companions/hindi" element={<HindiCompanions />} />
-            <Route path="/daily-readings" element={<DailyReadings />} />
+            <Route path="/readings/english" element={<EnglishReadings />} />
+            <Route path="/readings/hindi" element={<HindiReadings />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </TooltipProvider>
