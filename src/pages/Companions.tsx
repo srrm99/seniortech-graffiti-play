@@ -146,47 +146,65 @@ const Companions = () => {
 
   const handleTextToSpeech = async (text: string, messageId: string) => {
     try {
-      console.log('Sending text to speech request with text:', text);
-      const response = await fetch('https://api.sarvam.ai/text-to-speech', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'api-subscription-key': '044317b1-21ac-402f-9b65-1d98a3dcf2fd'
-        },
-        body: JSON.stringify({
-          inputs: [text.trim()], // Ensure text is trimmed and wrapped in array
-          language_code: 'hi-IN',
-          model: 'saarika:v1'
-        })
-      });
+      // Split text into chunks of maximum 500 characters, breaking at sentence endings
+      const chunks = text.match(/[^.!?]+[.!?]+/g) || [text];
+      const validChunks = chunks.map(chunk => chunk.trim()).filter(chunk => chunk.length > 0);
 
-      console.log('Response status:', response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Text to speech error response:', errorText);
-        throw new Error(`API Error: ${errorText}`);
-      }
-
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-
+      // Stop any currently playing audio
       if (audioRef.current) {
         audioRef.current.pause();
         URL.revokeObjectURL(audioRef.current.src);
         audioRef.current = null;
       }
 
-      const audio = new Audio(audioUrl);
-      audioRef.current = audio;
-
-      audio.onended = () => {
-        setIsPlaying(null);
-        URL.revokeObjectURL(audioUrl);
-      };
-
       setIsPlaying(messageId);
-      await audio.play();
+
+      // Process each chunk sequentially
+      for (const chunk of validChunks) {
+        if (chunk.length > 500) {
+          console.warn('Chunk too long, skipping:', chunk);
+          continue;
+        }
+
+        console.log('Processing chunk:', chunk);
+        const response = await fetch('https://api.sarvam.ai/text-to-speech', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'api-subscription-key': '044317b1-21ac-402f-9b65-1d98a3dcf2fd'
+          },
+          body: JSON.stringify({
+            inputs: [chunk],
+            language_code: 'hi-IN',
+            model: 'saarika:v1'
+          })
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Text to speech error response:', errorText);
+          throw new Error(`API Error: ${errorText}`);
+        }
+
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        // Create and play audio
+        const audio = new Audio(audioUrl);
+        audioRef.current = audio;
+
+        // Wait for the current chunk to finish playing before proceeding
+        await new Promise((resolve) => {
+          audio.onended = () => {
+            URL.revokeObjectURL(audioUrl);
+            resolve(null);
+          };
+          audio.play();
+        });
+      }
+
+      // Reset playing state after all chunks are done
+      setIsPlaying(null);
 
       toast({
         title: "Playing audio",
@@ -426,3 +444,4 @@ const Companions = () => {
 };
 
 export default Companions;
+
