@@ -146,6 +146,7 @@ const Companions = () => {
 
   const handleTextToSpeech = async (text: string, messageId: string) => {
     try {
+      console.log('Sending text to speech request with text:', text);
       const response = await fetch('https://api.sarvam.ai/text-to-speech', {
         method: 'POST',
         headers: {
@@ -159,17 +160,30 @@ const Companions = () => {
         })
       });
 
+      console.log('Response status:', response.status);
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Text to speech error:', errorText);
-        throw new Error('Failed to convert text to speech');
+        console.error('API error response:', response.status, errorText);
+        throw new Error(`Failed to convert text to speech: ${errorText}`);
       }
 
       const audioBlob = await response.blob();
+      console.log('Audio blob received:', {
+        type: audioBlob.type,
+        size: audioBlob.size
+      });
+
+      if (!audioBlob.type.startsWith('audio/')) {
+        console.error('Invalid blob type:', audioBlob.type);
+        throw new Error('Invalid audio format received');
+      }
+
       const audioUrl = URL.createObjectURL(audioBlob);
 
       if (audioRef.current) {
         audioRef.current.pause();
+        URL.revokeObjectURL(audioRef.current.src);
         audioRef.current = null;
       }
 
@@ -181,6 +195,11 @@ const Companions = () => {
         URL.revokeObjectURL(audioUrl);
       };
 
+      audio.onerror = (e) => {
+        console.error('Audio playback error:', e);
+        throw new Error('Failed to play audio');
+      };
+
       setIsPlaying(messageId);
       await audio.play();
 
@@ -189,10 +208,13 @@ const Companions = () => {
         description: "The message is being played...",
       });
     } catch (error: any) {
-      console.error('Text to speech error:', error);
+      console.error('Text to speech error:', {
+        message: error.message,
+        stack: error.stack
+      });
       toast({
         title: "Error",
-        description: "Failed to play the message. Please try again.",
+        description: error.message || "Failed to play the message. Please try again.",
         variant: "destructive",
       });
       setIsPlaying(null);
