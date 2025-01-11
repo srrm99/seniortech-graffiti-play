@@ -99,16 +99,7 @@ const EnglishReadings = () => {
     }
   };
 
-  const handleDragStart = (event: React.MouseEvent<Element, MouseEvent> | React.TouchEvent<Element>) => {
-    const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
-    const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
-    setDragStart({ x: clientX, y: clientY });
-  };
-
-  const handleDragEnd = (
-    _: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo
-  ) => {
+  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const swipeThreshold = 100;
     if (Math.abs(info.offset.x) > swipeThreshold) {
       if (info.offset.x > 0 && currentIndex > 0) {
@@ -190,7 +181,6 @@ const EnglishReadings = () => {
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   drag="x"
                   dragConstraints={{ left: 0, right: 0 }}
-                  onDragStart={handleDragStart}
                   onDragEnd={handleDragEnd}
                   whileDrag={{ scale: 1.05 }}
                 >
@@ -202,7 +192,30 @@ const EnglishReadings = () => {
                 </motion.div>
               </AnimatePresence>
 
-              <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full bg-white/90 hover:bg-white"
+                  onClick={swipeRight}
+                  disabled={currentIndex === 0}
+                >
+                  <span className="sr-only">Previous</span>
+                  ←
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full bg-white/90 hover:bg-white"
+                  onClick={swipeLeft}
+                  disabled={currentIndex === readings.length - 1}
+                >
+                  <span className="sr-only">Next</span>
+                  →
+                </Button>
+              </div>
+
+              <div className="absolute top-4 left-0 right-0 flex justify-center">
                 <div className="bg-white/90 px-3 py-1 rounded-full text-sm">
                   {currentIndex + 1} / {readings.length}
                 </div>

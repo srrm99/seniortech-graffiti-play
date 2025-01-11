@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
@@ -48,7 +48,6 @@ const HindiReadings = () => {
   const [readings, setReadings] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   const LOCAL_LLM_URL = "https://johnaic.pplus.ai/openai/chat/completions";
   const LOCAL_LLM_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImYwZGRiNTgzLTEzZTAtNDQyZS1hZTA0LTQ5ZmJjZTFmODhiYSJ9.djeA_RnaSvMyR9qYnz_2GW08jRq9aC5LG5bOEWdvBL4";
@@ -100,16 +99,7 @@ const HindiReadings = () => {
     }
   };
 
-  const handleDragStart = (event: React.MouseEvent<Element, MouseEvent> | React.TouchEvent<Element>) => {
-    const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
-    const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
-    setDragStart({ x: clientX, y: clientY });
-  };
-
-  const handleDragEnd = (
-    _: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo
-  ) => {
+  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const swipeThreshold = 100;
     if (Math.abs(info.offset.x) > swipeThreshold) {
       if (info.offset.x > 0 && currentIndex > 0) {
@@ -191,7 +181,6 @@ const HindiReadings = () => {
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   drag="x"
                   dragConstraints={{ left: 0, right: 0 }}
-                  onDragStart={handleDragStart}
                   onDragEnd={handleDragEnd}
                   whileDrag={{ scale: 1.05 }}
                 >
@@ -211,7 +200,8 @@ const HindiReadings = () => {
                   onClick={swipeRight}
                   disabled={currentIndex === 0}
                 >
-                  <ThumbsDown className="w-6 h-6 text-red-500" />
+                  <span className="sr-only">पिछला</span>
+                  ←
                 </Button>
                 <Button
                   variant="outline"
@@ -220,7 +210,8 @@ const HindiReadings = () => {
                   onClick={swipeLeft}
                   disabled={currentIndex === readings.length - 1}
                 >
-                  <ThumbsUp className="w-6 h-6 text-green-500" />
+                  <span className="sr-only">अगला</span>
+                  →
                 </Button>
               </div>
 
