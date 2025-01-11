@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
-const Index = () => {
+const IndexHindi = () => {
   const navigate = useNavigate();
 
   return (
@@ -14,20 +14,20 @@ const Index = () => {
         className="text-center p-8 max-w-2xl"
       >
         <h1 className="text-4xl md:text-5xl font-bold mb-4 text-[#1EAEDB]">
-          Welcome to Senior Connect
+          सीनियर कनेक्ट में आपका स्वागत है
         </h1>
         <p className="text-xl text-gray-600 mb-8">
-          Your companion for an active and connected life
+          एक सक्रिय और जुड़े जीवन के लिए आपका साथी
         </p>
         <Button
-          onClick={() => navigate("/language-selection")}
+          onClick={() => navigate("/home")}
           className="bg-[#33C3F0] hover:bg-[#1EAEDB] text-white px-8 py-6 text-xl rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
         >
-          Get Started
+          शुरू करें
         </Button>
       </motion.div>
     </div>
   );
 };
 
-export default Index;
+export default IndexHindi;

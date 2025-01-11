@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router-dom';
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-import { Sun, Moon, Trophy, Star } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Sun, Moon, Trophy, Star, Globe } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from "@/components/ui/use-toast";
+import { Card } from "@/components/ui/card";
+import { motion } from "framer-motion";
 
 const quotes = {
   english: [
@@ -49,21 +50,32 @@ const LanguageSelection = () => {
   const navigate = useNavigate();
   const { preferences, updateUserName, toggleTheme, setLanguage } = useUserPreferences();
   const [name, setName] = useState(preferences.userName);
+  const [selectedLanguage, setSelectedLanguage] = useState<'english' | 'hindi' | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
   const [dailyQuote, setDailyQuote] = useState('');
-  const currentLabels = labels[preferences.language];
 
-  useEffect(() => {
-    const quoteList = quotes[preferences.language];
-    const randomQuote = quoteList[Math.floor(Math.random() * quoteList.length)];
-    setDailyQuote(randomQuote);
-  }, [preferences.language]);
+  const handleLanguageSelect = (language: 'english' | 'hindi') => {
+    setSelectedLanguage(language);
+    setLanguage(language);
+    const quoteList = quotes[language];
+    setDailyQuote(quoteList[Math.floor(Math.random() * quoteList.length)]);
+    setShowDetails(true);
+  };
 
   const handleNameSubmit = () => {
+    if (!name.trim()) {
+      toast({
+        title: selectedLanguage === 'hindi' ? "कृपया नाम दर्ज करें" : "Please enter your name",
+        variant: "destructive",
+      });
+      return;
+    }
+
     updateUserName(name);
-    const successMessage = preferences.language === 'hindi' 
+    const successMessage = selectedLanguage === 'hindi' 
       ? "स्वागत है!" 
       : "Welcome!";
-    const description = preferences.language === 'hindi'
+    const description = selectedLanguage === 'hindi'
       ? `बहुत अच्छा है की आप यहाँ हैं, ${name}!`
       : `Great to have you here, ${name}!`;
     
@@ -71,25 +83,42 @@ const LanguageSelection = () => {
       title: successMessage,
       description: description,
     });
+
+    navigate(`/index/${selectedLanguage}`);
   };
 
-  const handleLanguageSelect = (language: 'english' | 'hindi') => {
-    setLanguage(language);
-    if (!preferences.userName) {
-      const achievementTitle = language === 'hindi' 
-        ? "उपलब्धि अनलॉक! 🏆" 
-        : "Achievement Unlocked! 🏆";
-      const achievementDesc = language === 'hindi'
-        ? "पहले कदम: आपका प्रोफ़ाइल सेटअप पूरा हो गया!"
-        : "First Steps: Completed your profile setup!";
-      
-      toast({
-        title: achievementTitle,
-        description: achievementDesc,
-      });
-    }
-    navigate('/home');
-  };
+  if (!showDetails) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center space-y-8"
+        >
+          <Globe className="w-16 h-16 mx-auto text-accent" />
+          <h1 className="text-4xl font-rozha text-accent mb-8">
+            Select Your Language / अपनी भाषा चुनें
+          </h1>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Button 
+              className="text-xl p-8 min-w-[200px]"
+              onClick={() => handleLanguageSelect('english')}
+            >
+              English
+            </Button>
+            <Button 
+              className="text-xl p-8 min-w-[200px]"
+              onClick={() => handleLanguageSelect('hindi')}
+            >
+              हिंदी
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  const currentLabels = labels[selectedLanguage!];
 
   return (
     <div className="min-h-screen bg-background p-6 space-y-8">
@@ -142,21 +171,6 @@ const LanguageSelection = () => {
             </div>
           </div>
         </Card>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Button 
-            className="p-6 text-xl hover:scale-105 transition-transform"
-            onClick={() => handleLanguageSelect('english')}
-          >
-            English
-          </Button>
-          <Button 
-            className="p-6 text-xl hover:scale-105 transition-transform"
-            onClick={() => handleLanguageSelect('hindi')}
-          >
-            हिंदी
-          </Button>
-        </div>
       </div>
     </div>
   );

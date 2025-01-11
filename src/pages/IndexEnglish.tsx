@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
-const Index = () => {
+const IndexEnglish = () => {
   const navigate = useNavigate();
 
   return (
@@ -20,7 +20,7 @@ const Index = () => {
           Your companion for an active and connected life
         </p>
         <Button
-          onClick={() => navigate("/language-selection")}
+          onClick={() => navigate("/home")}
           className="bg-[#33C3F0] hover:bg-[#1EAEDB] text-white px-8 py-6 text-xl rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
         >
           Get Started
@@ -30,4 +30,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default IndexEnglish;

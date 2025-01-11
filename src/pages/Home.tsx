@@ -11,28 +11,24 @@ const menuItems = {
       title: "Games",
       description: "Play engaging games designed for seniors",
       path: "/games",
-      gradient: "from-orange-400 to-pink-500"
     },
     {
       Icon: HeartHandshake,
       title: "Talk to Someone",
       description: "Have a conversation with an AI companion",
       path: "/companions/english",
-      gradient: "from-purple-400 to-blue-500"
     },
     {
       Icon: Book,
       title: "Daily Readings",
       description: "Enjoy daily readings and stories",
       path: "/readings/english",
-      gradient: "from-green-400 to-teal-500"
     },
     {
       Icon: HelpCircle,
       title: "Help & Information",
       description: "Get help and learn how to use the app",
       path: "/info-assistant",
-      gradient: "from-yellow-400 to-orange-500"
     }
   ],
   hindi: [
@@ -41,28 +37,24 @@ const menuItems = {
       title: "खेल",
       description: "वरिष्ठ नागरिकों के लिए डिज़ाइन किए गए खेल खेलें",
       path: "/games",
-      gradient: "from-orange-400 to-pink-500"
     },
     {
       Icon: HeartHandshake,
       title: "किसी से बात करें",
       description: "एआई साथी से बातचीत करें",
       path: "/companions/hindi",
-      gradient: "from-purple-400 to-blue-500"
     },
     {
       Icon: Book,
       title: "दैनिक पाठ",
       description: "दैनिक पाठ और कहानियों का आनंद लें",
       path: "/readings/hindi",
-      gradient: "from-green-400 to-teal-500"
     },
     {
       Icon: HelpCircle,
       title: "सहायता और जानकारी",
       description: "ऐप का उपयोग करने में मदद और जानकारी प्राप्त करें",
       path: "/info-assistant",
-      gradient: "from-yellow-400 to-orange-500"
     }
   ]
 };
@@ -107,7 +99,7 @@ const Home = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center space-y-2"
         >
-          <h1 className="text-4xl md:text-5xl font-rozha text-accent mb-2 bg-clip-text text-transparent bg-gradient-to-r from-accent to-accent/70">
+          <h1 className="text-4xl md:text-5xl font-rozha text-accent mb-2">
             {messages.greeting}, {preferences.userName}
           </h1>
           <p className="text-xl text-muted-foreground">
@@ -129,16 +121,16 @@ const Home = () => {
               whileTap={{ scale: 0.98 }}
             >
               <Card
-                className={`p-6 cursor-pointer bg-gradient-to-br ${menuItem.gradient} hover:shadow-lg transition-all duration-300 border-none`}
+                className="feature-card"
                 onClick={() => navigate(menuItem.path)}
               >
-                <div className="flex items-center gap-4 text-white">
-                  <div className="p-3 bg-white/20 rounded-full">
-                    <menuItem.Icon className="w-8 h-8" />
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-primary rounded-full">
+                    <menuItem.Icon className="w-8 h-8 text-accent" />
                   </div>
-                  <div>
-                    <h2 className="text-2xl font-rozha mb-1">{menuItem.title}</h2>
-                    <p className="text-sm opacity-90">{menuItem.description}</p>
+                  <div className="text-left">
+                    <h2 className="text-2xl font-rozha mb-1 text-accent">{menuItem.title}</h2>
+                    <p className="text-sm text-muted-foreground">{menuItem.description}</p>
                   </div>
                 </div>
               </Card>
