@@ -122,18 +122,18 @@ const EnglishReadings = () => {
     }
   };
 
-return (
-    <div className="min-h-screen bg-pattern p-6">
+  return (
+    <div className="min-h-screen bg-[#D3E4FD] p-6 font-poppins">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
           <button 
             onClick={() => navigate('/home')}
-            className="flex items-center text-accent hover:text-accent/80"
+            className="flex items-center text-[#1EAEDB] hover:text-[#33C3F0] transition-colors"
           >
-            <ArrowLeft className="w-6 h-6 mr-2" />
-            Back
+            <ArrowLeft className="w-8 h-8 mr-2" />
+            <span className="text-xl">Back</span>
           </button>
-          <h1 className="text-4xl font-rozha text-accent">Daily Readings</h1>
+          <h1 className="text-4xl font-bold text-[#1EAEDB]">Daily Readings</h1>
           <div className="w-10" />
         </div>
 
@@ -142,12 +142,12 @@ return (
             {readingTypes.map((type) => (
               <Card
                 key={type.id}
-                className="cursor-pointer hover:border-accent transition-colors"
+                className="cursor-pointer hover:shadow-xl transition-all duration-300 border-2 border-[#33C3F0] bg-white"
                 onClick={() => generateReadings(type)}
               >
-                <CardContent className="p-6">
-                  <h3 className="text-2xl font-rozha text-accent mb-2">{type.title}</h3>
-                  <p className="text-muted-foreground">{type.description}</p>
+                <CardContent className="p-8">
+                  <h3 className="text-2xl font-bold text-[#1EAEDB] mb-3">{type.title}</h3>
+                  <p className="text-lg text-gray-600">{type.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -157,7 +157,7 @@ return (
         {selectedType && readings.length > 0 && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-rozha text-accent">{selectedType.title}</h2>
+              <h2 className="text-2xl font-bold text-[#1EAEDB]">{selectedType.title}</h2>
               <Button
                 variant="outline"
                 onClick={() => {
@@ -165,14 +165,15 @@ return (
                   setReadings([]);
                   setCurrentIndex(0);
                 }}
+                className="text-lg border-2 border-[#33C3F0] hover:bg-[#33C3F0] hover:text-white transition-colors"
               >
                 Choose Different Type
               </Button>
             </div>
 
-            <div className="bg-accent/10 p-4 rounded-lg flex items-center justify-center gap-2 text-lg">
-              <MoveHorizontal className="w-6 h-6" />
-              <p>Swipe left or right to read more stories</p>
+            <div className="bg-[#33C3F0]/20 p-6 rounded-lg flex items-center justify-center gap-3 text-xl shadow-md">
+              <MoveHorizontal className="w-8 h-8 text-[#1EAEDB]" />
+              <p className="text-[#1EAEDB] font-medium">Swipe left or right to read more stories</p>
             </div>
 
             <div className="relative h-[500px] w-full overflow-hidden touch-none">
@@ -189,39 +190,37 @@ return (
                   onDragEnd={handleDragEnd}
                   whileDrag={{ scale: 1.05 }}
                 >
-                  <Card className="w-full h-full overflow-y-auto">
-                    <CardContent className="p-6 prose prose-lg dark:prose-invert">
+                  <Card className="w-full h-full overflow-y-auto bg-white shadow-xl">
+                    <CardContent className="p-8 prose prose-lg dark:prose-invert max-w-none">
                       <ReactMarkdown>{readings[currentIndex]}</ReactMarkdown>
                     </CardContent>
                   </Card>
                 </motion.div>
               </AnimatePresence>
 
-              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
+              <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-6">
                 <Button
                   variant="outline"
                   size="lg"
-                  className="rounded-full bg-white/90 hover:bg-white"
+                  className="w-16 h-16 rounded-full bg-white/90 hover:bg-[#33C3F0] hover:text-white border-2 border-[#33C3F0] text-2xl"
                   onClick={swipeRight}
                   disabled={currentIndex === 0}
                 >
-                  <span className="sr-only">Previous</span>
                   ←
                 </Button>
                 <Button
                   variant="outline"
                   size="lg"
-                  className="rounded-full bg-white/90 hover:bg-white"
+                  className="w-16 h-16 rounded-full bg-white/90 hover:bg-[#33C3F0] hover:text-white border-2 border-[#33C3F0] text-2xl"
                   onClick={swipeLeft}
                   disabled={currentIndex === readings.length - 1}
                 >
-                  <span className="sr-only">Next</span>
                   →
                 </Button>
               </div>
 
               <div className="absolute top-4 left-0 right-0 flex justify-center">
-                <div className="bg-white/90 px-3 py-1 rounded-full text-sm">
+                <div className="bg-white/90 px-4 py-2 rounded-full text-lg font-medium text-[#1EAEDB] shadow-md">
                   {currentIndex + 1} / {readings.length}
                 </div>
               </div>
@@ -231,7 +230,7 @@ return (
 
         {isLoading && (
           <div className="text-center p-12">
-            <div className="animate-pulse text-xl font-rozha text-accent">
+            <div className="animate-pulse text-2xl font-bold text-[#1EAEDB]">
               Generating your readings...
             </div>
           </div>
