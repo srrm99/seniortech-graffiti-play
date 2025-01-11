@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from 'react-markdown';
 
@@ -106,14 +106,15 @@ const HindiReadings = () => {
     setDragStart({ x: clientX, y: clientY });
   };
 
-  const handleDragEnd = (event: React.MouseEvent | React.TouchEvent) => {
-    const clientX = 'changedTouches' in event ? event.changedTouches[0].clientX : event.clientX;
-    const deltaX = clientX - dragStart.x;
-
-    if (Math.abs(deltaX) > 100) { // Minimum swipe distance
-      if (deltaX > 0 && currentIndex > 0) {
+  const handleDragEnd = (
+    event: MouseEvent | TouchEvent | PointerEvent,
+    info: PanInfo
+  ) => {
+    const swipeThreshold = 100;
+    if (Math.abs(info.offset.x) > swipeThreshold) {
+      if (info.offset.x > 0 && currentIndex > 0) {
         setCurrentIndex(prev => prev - 1);
-      } else if (deltaX < 0 && currentIndex < readings.length - 1) {
+      } else if (info.offset.x < 0 && currentIndex < readings.length - 1) {
         setCurrentIndex(prev => prev + 1);
       }
     }
