@@ -165,6 +165,19 @@ const HindiInfoAssistant = () => {
       <Card className="p-6 space-y-4 bg-white shadow-lg rounded-xl border-2 border-accent/20 min-h-[600px] flex flex-col">
         <ScrollArea className="flex-grow mb-4 pr-4">
           <div className="space-y-4">
+            {messages.length === 0 && (
+              <div className="text-center text-muted-foreground p-4">
+                <p>नमस्ते! मैं आपकी हर तरह की जानकारी में मदद करने के लिए यहाँ हूँ।</p>
+                <p className="mt-2">आप मुझसे इन विषयों पर पूछ सकते हैं:</p>
+                <ul className="list-disc list-inside mt-2 text-left">
+                  <li>ताज़ा समाचार और वर्तमान घटनाएं</li>
+                  <li>वरिष्ठ नागरिकों के लिए सरकारी योजनाएं</li>
+                  <li>स्वास्थ्य सेवाएं और सुविधाएं</li>
+                  <li>स्थानीय सामुदायिक सेवाएं</li>
+                  <li>तकनीकी मदद और मार्गदर्शन</li>
+                </ul>
+              </div>
+            )}
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -187,7 +200,7 @@ const HindiInfoAssistant = () => {
         <div className="relative mt-auto">
           <textarea
             className="w-full min-h-[100px] rounded-lg border-2 border-accent/20 p-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-            placeholder="कुछ भी पूछें - समाचार, सेवाएं, या सामान्य जानकारी..."
+            placeholder="कुछ भी पूछें - नवीनतम समाचार, सरकारी योजनाएं, स्वास्थ्य कार्यक्रम, या कोई अन्य जानकारी जो आपको चाहिए..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -197,6 +210,14 @@ const HindiInfoAssistant = () => {
               }
             }}
           />
+          <Button 
+            className="absolute right-2 bottom-2 bg-accent hover:bg-accent/90 text-white"
+            onClick={toggleListening}
+            variant="ghost"
+            size="icon"
+          >
+            {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+          </Button>
         </div>
         
         <Button 

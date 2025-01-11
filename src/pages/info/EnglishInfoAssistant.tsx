@@ -147,6 +147,19 @@ const EnglishInfoAssistant = () => {
       <Card className="p-6 space-y-4 bg-white shadow-lg rounded-xl border-2 border-accent/20 min-h-[600px] flex flex-col">
         <ScrollArea className="flex-grow mb-4 pr-4">
           <div className="space-y-4">
+            {messages.length === 0 && (
+              <div className="text-center text-muted-foreground p-4">
+                <p>Welcome! I'm here to help you with any information you need.</p>
+                <p className="mt-2">You can ask me about:</p>
+                <ul className="list-disc list-inside mt-2 text-left">
+                  <li>Latest news and current events</li>
+                  <li>Government schemes for senior citizens</li>
+                  <li>Healthcare programs and facilities</li>
+                  <li>Local community services</li>
+                  <li>Technology help and guidance</li>
+                </ul>
+              </div>
+            )}
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -169,7 +182,7 @@ const EnglishInfoAssistant = () => {
         <div className="relative mt-auto">
           <textarea
             className="w-full min-h-[100px] rounded-lg border-2 border-accent/20 p-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-            placeholder="Ask me anything - news, services, or general information..."
+            placeholder="Ask me anything - latest news, government schemes, healthcare programs, or any other information you need..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -179,6 +192,14 @@ const EnglishInfoAssistant = () => {
               }
             }}
           />
+          <Button 
+            className="absolute right-2 bottom-2 bg-accent hover:bg-accent/90 text-white"
+            onClick={toggleListening}
+            variant="ghost"
+            size="icon"
+          >
+            {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+          </Button>
         </div>
         
         <Button 
