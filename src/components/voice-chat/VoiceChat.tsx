@@ -37,7 +37,6 @@ const VoiceChat = ({ persona, onClose }: VoiceChatProps) => {
   const connectToRoom = async () => {
     try {
       setIsConnecting(true);
-      // Initialize room with the correct configuration
       const newRoom = new Room({
         adaptiveStream: true,
         dynacast: true,
@@ -46,21 +45,25 @@ const VoiceChat = ({ persona, onClose }: VoiceChatProps) => {
         },
       });
 
-      // Connect to LiveKit server with proper URL and token
-      // Note: You'll need to set up a LiveKit server and generate tokens
-      const wsUrl = 'wss://your-livekit-server.com';  // Replace with your LiveKit server URL
-      const token = 'your-token-here'; // Replace with your token generation logic
+      // Using the correct LiveKit server URL format
+      const wsUrl = 'ws://localhost:7880'; // For local development
+      // For production, use your deployed LiveKit server URL
+      // const wsUrl = 'wss://your-livekit-domain.com';
       
+      // Generate a token for the room
+      // You should implement proper token generation on your server
+      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDU2NzM2OTIsImlzcyI6IkFQSV9LRVkiLCJuYmYiOjE3MDU1ODcyOTIsInN1YiI6InVzZXItMTIzIiwidmlkZW8iOnsicm9vbSI6InRlc3Qtcm9vbSIsInJvb21Kb2luIjp0cnVlfX0.YourSignatureHere';
+      
+      console.log('Connecting to LiveKit server:', wsUrl);
       await newRoom.connect(wsUrl, token);
+      console.log('Connected to room successfully');
       
-      // Enable local audio
       const audioTrack = await createLocalAudioTrack({
         echoCancellation: true,
         noiseSuppression: true,
       });
       await newRoom.localParticipant.publishTrack(audioTrack);
 
-      // Set up event listeners with persona-specific handling
       newRoom.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
         console.log('Participant connected:', participant.identity);
         toast({
@@ -77,11 +80,11 @@ const VoiceChat = ({ persona, onClose }: VoiceChatProps) => {
         });
       });
 
-      // Handle audio data for AI processing
       newRoom.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
         if (track.kind === 'audio') {
-          // Here you would implement the logic to process the audio with your AI model
           console.log('Audio track subscribed:', track.sid);
+          // Here you would implement the logic to process the audio with OpenAI
+          // Using the API key: process.env.OPENAI_API_KEY
         }
       });
 
