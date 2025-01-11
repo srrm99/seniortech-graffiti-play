@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { UserPreferencesProvider } from "./contexts/UserPreferencesContext";
 import LanguageSelection from "./pages/LanguageSelection";
+import IndexEnglish from "./pages/IndexEnglish";
+import IndexHindi from "./pages/IndexHindi";
 import Home from "./pages/Home";
 import Games from "./pages/Games";
 import InfoAssistant from "./pages/Help";
@@ -24,6 +26,8 @@ const App = () => (
           <Sonner />
           <Routes>
             <Route path="/" element={<LanguageSelection />} />
+            <Route path="/index/english" element={<IndexEnglish />} />
+            <Route path="/index/hindi" element={<IndexHindi />} />
             <Route path="/home" element={<Home />} />
             <Route path="/games" element={<Games />} />
             <Route path="/info-assistant" element={<InfoAssistant />} />

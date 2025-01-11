@@ -88,7 +88,7 @@ const LanguageSelection = () => {
         description: achievementDesc,
       });
     }
-    navigate('/home');
+    navigate(`/index/${language}`);
   };
 
   return (
