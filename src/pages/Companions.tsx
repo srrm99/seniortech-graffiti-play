@@ -154,7 +154,7 @@ const Companions = () => {
           'api-subscription-key': '044317b1-21ac-402f-9b65-1d98a3dcf2fd'
         },
         body: JSON.stringify({
-          inputs: [text], // Now wrapped in an array as required by the API
+          inputs: [text], // Ensure text is wrapped in an array
           language_code: 'hi-IN',
           model: 'saarika:v1'
         })
@@ -426,3 +426,4 @@ const Companions = () => {
 };
 
 export default Companions;
+
