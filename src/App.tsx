@@ -8,7 +8,8 @@ import LanguageSelection from "./pages/LanguageSelection";
 import Home from "./pages/Home";
 import Games from "./pages/Games";
 import InfoAssistant from "./pages/Help";
-import Companions from "./pages/Companions";
+import EnglishCompanions from "./pages/companions/EnglishCompanions";
+import HindiCompanions from "./pages/companions/HindiCompanions";
 import DailyReadings from "./pages/DailyReadings";
 
 const queryClient = new QueryClient();
@@ -25,7 +26,8 @@ const App = () => (
             <Route path="/home" element={<Home />} />
             <Route path="/games" element={<Games />} />
             <Route path="/info-assistant" element={<InfoAssistant />} />
-            <Route path="/companions" element={<Companions />} />
+            <Route path="/companions/english" element={<EnglishCompanions />} />
+            <Route path="/companions/hindi" element={<HindiCompanions />} />
             <Route path="/daily-readings" element={<DailyReadings />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

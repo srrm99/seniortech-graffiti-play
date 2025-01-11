@@ -15,7 +15,7 @@ const menuItems = {
       icon: HeartHandshake,
       title: "Talk to Someone",
       description: "Have a conversation with an AI companion",
-      path: "/companions"
+      path: "/companions/english"
     },
     {
       icon: Book,
@@ -41,7 +41,7 @@ const menuItems = {
       icon: HeartHandshake,
       title: "किसी से बात करें",
       description: "एआई साथी से बातचीत करें",
-      path: "/companions"
+      path: "/companions/hindi"
     },
     {
       icon: Book,
