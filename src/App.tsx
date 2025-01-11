@@ -9,7 +9,8 @@ import IndexEnglish from "./pages/IndexEnglish";
 import IndexHindi from "./pages/IndexHindi";
 import Home from "./pages/Home";
 import Games from "./pages/Games";
-import InfoAssistant from "./pages/Help";
+import EnglishInfoAssistant from "./pages/info/EnglishInfoAssistant";
+import HindiInfoAssistant from "./pages/info/HindiInfoAssistant";
 import EnglishCompanions from "./pages/companions/EnglishCompanions";
 import HindiCompanions from "./pages/companions/HindiCompanions";
 import EnglishReadings from "./pages/readings/EnglishReadings";
@@ -30,7 +31,8 @@ const App = () => (
             <Route path="/index/hindi" element={<IndexHindi />} />
             <Route path="/home" element={<Home />} />
             <Route path="/games" element={<Games />} />
-            <Route path="/info-assistant" element={<InfoAssistant />} />
+            <Route path="/info-assistant/english" element={<EnglishInfoAssistant />} />
+            <Route path="/info-assistant/hindi" element={<HindiInfoAssistant />} />
             <Route path="/companions/english" element={<EnglishCompanions />} />
             <Route path="/companions/hindi" element={<HindiCompanions />} />
             <Route path="/readings/english" element={<EnglishReadings />} />
