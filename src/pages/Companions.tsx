@@ -144,100 +144,92 @@ const Companions = () => {
     }
   };
 
-  const handleTextToSpeech = async (text: string, messageId: string) => {
-    try {
-      // Split text into chunks of maximum 500 characters, breaking at sentence endings
-      const chunks = text.match(/[^.!?]+[.!?]+/g) || [text];
-      const validChunks = chunks.map(chunk => chunk.trim()).filter(chunk => chunk.length > 0);
+const handleTextToSpeech = async (text: string, messageId: string) => {
+  try {
+    // Split text into manageable chunks
+    const chunks = text.match(/[^.!?]+[.!?]+/g) || [text];
+    const validChunks = chunks.map(chunk => chunk.trim()).filter(chunk => chunk.length > 0);
 
-      // Stop any currently playing audio
-      if (audioRef.current) {
-        audioRef.current.pause();
-        URL.revokeObjectURL(audioRef.current.src);
-        audioRef.current = null;
-      }
-
-      setIsPlaying(messageId);
-
-      // Process each chunk sequentially
-      for (const chunk of validChunks) {
-        if (chunk.length > 500) {
-          console.warn('Chunk too long, skipping:', chunk);
-          continue;
-        }
-
-        console.log('Processing chunk:', chunk);
-        const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/pFZP5JQG7iQjIQuC4Bku', {
-          method: 'POST',
-          headers: {
-            'Accept': 'audio/mpeg',
-            'Content-Type': 'application/json',
-            'xi-api-key': 'sk-787c50eea4a25224ea5502b03c3bf5da89225e9bf23d1cff'
-          },
-          body: JSON.stringify({
-            text: chunk,
-            model_id: "eleven_multilingual_v2",
-            voice_settings: {
-              stability: 0.5,
-              similarity_boost: 0.75
-            }
-          })
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Text to speech error response:', errorText);
-          throw new Error(`API Error: ${errorText}`);
-        }
-
-        const audioBlob = await response.blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
-
-        // Create and play audio
-        const audio = new Audio();
-        audio.src = audioUrl;
-        audioRef.current = audio;
-
-        // Wait for the current chunk to finish playing before proceeding
-        await new Promise((resolve, reject) => {
-          audio.onended = () => {
-            URL.revokeObjectURL(audioUrl);
-            resolve(null);
-          };
-          audio.onerror = (e) => {
-            console.error('Audio playback error:', e);
-            URL.revokeObjectURL(audioUrl);
-            reject(new Error('Audio playback failed'));
-          };
-          audio.load();
-          const playPromise = audio.play();
-          if (playPromise) {
-            playPromise.catch(error => {
-              console.error('Audio playback error:', error);
-              URL.revokeObjectURL(audioUrl);
-              reject(error);
-            });
-          }
-        });
-      }
-
-      // Reset playing state after all chunks are done
-      setIsPlaying(null);
-
-      toast({
-        title: "Playing audio",
-        description: "The message is being played...",
-      });
-    } catch (error: any) {
-      console.error('Text to speech error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to play the message. Please try again.",
-        variant: "destructive",
-      });
-      setIsPlaying(null);
+    // Stop any currently playing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      URL.revokeObjectURL(audioRef.current.src);
+      audioRef.current = null;
     }
-  };
+
+    setIsPlaying(messageId);
+
+    // Process each chunk sequentially
+    for (const chunk of validChunks) {
+      if (chunk.length > 500) {
+        console.warn('Chunk too long, skipping:', chunk);
+        continue;
+      }
+
+      console.log('Processing chunk:', chunk);
+      const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/pFZP5JQG7iQjIQuC4Bku', {
+        method: 'POST',
+        headers: {
+          'Accept': 'audio/mpeg',
+          'Content-Type': 'application/json',
+          'xi-api-key': 'sk-787c50eea4a25224ea5502b03c3bf5da89225e9bf23d1cff'
+        },
+        body: JSON.stringify({
+          text: chunk,
+          model_id: "eleven_multilingual_v2",
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.75
+          }
+        })
+      });
+
+      // Handle response
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Text-to-Speech API Error:', errorText);
+        throw new Error(`TTS Error: ${errorText}`);
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      // Play audio
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+
+      // Handle playback
+      await new Promise((resolve, reject) => {
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+          resolve(null);
+        };
+        audio.onerror = (e) => {
+          console.error('Audio playback error:', e);
+          URL.revokeObjectURL(audioUrl);
+          reject(new Error('Audio playback failed'));
+        };
+        audio.play();
+      });
+    }
+
+    setIsPlaying(null);
+
+    toast({
+      title: "Playing audio",
+      description: "The message is being played...",
+    });
+  } catch (error: any) {
+    console.error('Text-to-Speech Error:', error);
+    toast({
+      title: "Error",
+      description: error.message || "Failed to play the message. Please try again.",
+      variant: "destructive",
+    });
+    setIsPlaying(null);
+  }
+};
+
 
   const stopAudio = () => {
     if (audioRef.current) {
