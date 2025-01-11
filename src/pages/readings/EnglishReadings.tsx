@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from 'react-markdown';
 
@@ -46,7 +46,9 @@ const EnglishReadings = () => {
   const { toast } = useToast();
   const [selectedType, setSelectedType] = useState<ReadingType | null>(null);
   const [readings, setReadings] = useState<string[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   const LOCAL_LLM_URL = "https://johnaic.pplus.ai/openai/chat/completions";
   const LOCAL_LLM_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImYwZGRiNTgzLTEzZTAtNDQyZS1hZTA0LTQ5ZmJjZTFmODhiYSJ9.djeA_RnaSvMyR9qYnz_2GW08jRq9aC5LG5bOEWdvBL4";
@@ -98,6 +100,37 @@ const EnglishReadings = () => {
     }
   };
 
+  const handleDragStart = (event: React.MouseEvent | React.TouchEvent) => {
+    const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
+    const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
+    setDragStart({ x: clientX, y: clientY });
+  };
+
+  const handleDragEnd = (event: React.MouseEvent | React.TouchEvent) => {
+    const clientX = 'changedTouches' in event ? event.changedTouches[0].clientX : event.clientX;
+    const deltaX = clientX - dragStart.x;
+
+    if (Math.abs(deltaX) > 100) { // Minimum swipe distance
+      if (deltaX > 0 && currentIndex > 0) {
+        setCurrentIndex(prev => prev - 1);
+      } else if (deltaX < 0 && currentIndex < readings.length - 1) {
+        setCurrentIndex(prev => prev + 1);
+      }
+    }
+  };
+
+  const swipeLeft = () => {
+    if (currentIndex < readings.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+    }
+  };
+
+  const swipeRight = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(prev => prev - 1);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-pattern p-6">
       <div className="max-w-4xl mx-auto space-y-8">
@@ -139,27 +172,63 @@ const EnglishReadings = () => {
                 onClick={() => {
                   setSelectedType(null);
                   setReadings([]);
+                  setCurrentIndex(0);
                 }}
               >
                 Choose Different Type
               </Button>
             </div>
 
-            <Carousel className="w-full">
-              <CarouselContent>
-                {readings.map((reading, index) => (
-                  <CarouselItem key={index}>
-                    <Card className="p-6">
-                      <CardContent className="prose prose-lg dark:prose-invert">
-                        <ReactMarkdown>{reading}</ReactMarkdown>
-                      </CardContent>
-                    </Card>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
+            <div className="relative h-[500px] w-full overflow-hidden touch-none">
+              <AnimatePresence initial={false}>
+                <motion.div
+                  key={currentIndex}
+                  className="absolute w-full h-full"
+                  initial={{ x: 300, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: -300, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                  whileDrag={{ scale: 1.05 }}
+                >
+                  <Card className="w-full h-full overflow-y-auto">
+                    <CardContent className="p-6 prose prose-lg dark:prose-invert">
+                      <ReactMarkdown>{readings[currentIndex]}</ReactMarkdown>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </AnimatePresence>
+
+              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full bg-white/90 hover:bg-white"
+                  onClick={swipeRight}
+                  disabled={currentIndex === 0}
+                >
+                  <ThumbsDown className="w-6 h-6 text-red-500" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full bg-white/90 hover:bg-white"
+                  onClick={swipeLeft}
+                  disabled={currentIndex === readings.length - 1}
+                >
+                  <ThumbsUp className="w-6 h-6 text-green-500" />
+                </Button>
+              </div>
+
+              <div className="absolute top-4 left-0 right-0 flex justify-center">
+                <div className="bg-white/90 px-3 py-1 rounded-full text-sm">
+                  {currentIndex + 1} / {readings.length}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
