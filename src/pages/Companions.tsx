@@ -153,13 +153,15 @@ const Companions = () => {
           'api-subscription-key': '044317b1-21ac-402f-9b65-1d98a3dcf2fd'
         },
         body: JSON.stringify({
-          text: text,
+          inputs: text,
           language_code: 'hi-IN',
           model: 'saarika:v1'
         })
       });
 
       if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Text to speech error:', errorData);
         throw new Error('Failed to convert text to speech');
       }
 
