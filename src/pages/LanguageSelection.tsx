@@ -22,49 +22,73 @@ const quotes = {
   ]
 };
 
+const labels = {
+  english: {
+    welcome: "Senior Connect",
+    enterName: "Enter your name",
+    save: "Save",
+    achievements: "Achievements",
+    firstSteps: "First Steps: Complete your profile",
+    gameMaster: "Game Master: Win 5 games",
+    dailyReader: "Daily Reader: Read 7 days in a row",
+    selectLanguage: "Select Your Language"
+  },
+  hindi: {
+    welcome: "वरिष्ठ कनेक्ट",
+    enterName: "अपना नाम दर्ज करें",
+    save: "सहेजें",
+    achievements: "उपलब्धियां",
+    firstSteps: "पहले कदम: प्रोफ़ाइल पूरा करें",
+    gameMaster: "गेम मास्टर: 5 खेल जीतें",
+    dailyReader: "दैनिक पाठक: लगातार 7 दिन पढ़ें",
+    selectLanguage: "अपनी भाषा चुनें"
+  }
+};
+
 const LanguageSelection = () => {
   const navigate = useNavigate();
   const { preferences, updateUserName, toggleTheme, setLanguage } = useUserPreferences();
   const [name, setName] = useState(preferences.userName);
   const [dailyQuote, setDailyQuote] = useState('');
+  const currentLabels = labels[preferences.language];
 
   useEffect(() => {
-    const quoteList = quotes[preferences.language || 'english'];
+    const quoteList = quotes[preferences.language];
     const randomQuote = quoteList[Math.floor(Math.random() * quoteList.length)];
     setDailyQuote(randomQuote);
   }, [preferences.language]);
 
   const handleNameSubmit = () => {
     updateUserName(name);
+    const successMessage = preferences.language === 'hindi' 
+      ? "स्वागत है!" 
+      : "Welcome!";
+    const description = preferences.language === 'hindi'
+      ? `बहुत अच्छा है की आप यहाँ हैं, ${name}!`
+      : `Great to have you here, ${name}!`;
+    
     toast({
-      title: preferences.language === 'hindi' ? "स्वागत है!" : "Welcome!",
-      description: preferences.language === 'hindi' 
-        ? `बहुत अच्छा है की आप यहाँ हैं, ${name}!`
-        : `Great to have you here, ${name}!`,
+      title: successMessage,
+      description: description,
     });
   };
 
   const handleLanguageSelect = (language: 'english' | 'hindi') => {
     setLanguage(language);
     if (!preferences.userName) {
+      const achievementTitle = language === 'hindi' 
+        ? "उपलब्धि अनलॉक! 🏆" 
+        : "Achievement Unlocked! 🏆";
+      const achievementDesc = language === 'hindi'
+        ? "पहले कदम: आपका प्रोफ़ाइल सेटअप पूरा हो गया!"
+        : "First Steps: Completed your profile setup!";
+      
       toast({
-        title: language === 'hindi' ? "उपलब्धि अनलॉक! 🏆" : "Achievement Unlocked! 🏆",
-        description: language === 'hindi' 
-          ? "पहले कदम: आपका प्रोफ़ाइल सेटअप पूरा हो गया!"
-          : "First Steps: Completed your profile setup!",
+        title: achievementTitle,
+        description: achievementDesc,
       });
     }
     navigate('/home');
-  };
-
-  const labels = {
-    welcome: preferences.language === 'hindi' ? "वरिष्ठ कनेक्ट" : "Senior Connect",
-    enterName: preferences.language === 'hindi' ? "अपना नाम दर्ज करें" : "Enter your name",
-    save: preferences.language === 'hindi' ? "सहेजें" : "Save",
-    achievements: preferences.language === 'hindi' ? "उपलब्धियां" : "Achievements",
-    firstSteps: preferences.language === 'hindi' ? "पहले कदम: प्रोफ़ाइल पूरा करें" : "First Steps: Complete your profile",
-    gameMaster: preferences.language === 'hindi' ? "गेम मास्टर: 5 खेल जीतें" : "Game Master: Win 5 games",
-    dailyReader: preferences.language === 'hindi' ? "दैनिक पाठक: लगातार 7 दिन पढ़ें" : "Daily Reader: Read 7 days in a row"
   };
 
   return (
@@ -79,42 +103,42 @@ const LanguageSelection = () => {
         </div>
 
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-rozha text-accent">{labels.welcome}</h1>
+          <h1 className="text-4xl font-rozha text-accent">{currentLabels.welcome}</h1>
           <div className="mehndi-border">
             <p className="text-xl text-muted-foreground italic">{dailyQuote}</p>
           </div>
         </div>
 
         <Card className="p-6 space-y-4 bg-white/80 backdrop-blur">
-          <h2 className="text-2xl font-rozha text-accent">{labels.welcome}</h2>
+          <h2 className="text-2xl font-rozha text-accent">{currentLabels.welcome}</h2>
           <div className="flex gap-2">
             <Input
-              placeholder={labels.enterName}
+              placeholder={currentLabels.enterName}
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="max-w-[200px]"
             />
-            <Button onClick={handleNameSubmit}>{labels.save}</Button>
+            <Button onClick={handleNameSubmit}>{currentLabels.save}</Button>
           </div>
         </Card>
 
         <Card className="p-6 bg-white/80 backdrop-blur">
           <div className="flex items-center gap-2 mb-4">
             <Trophy className="w-6 h-6 text-yellow-500" />
-            <h2 className="text-2xl font-rozha text-accent">{labels.achievements}</h2>
+            <h2 className="text-2xl font-rozha text-accent">{currentLabels.achievements}</h2>
           </div>
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Star className="w-5 h-5 text-yellow-500" />
-              <p>{labels.firstSteps}</p>
+              <p>{currentLabels.firstSteps}</p>
             </div>
             <div className="flex items-center gap-2">
               <Star className="w-5 h-5 text-gray-300" />
-              <p>{labels.gameMaster}</p>
+              <p>{currentLabels.gameMaster}</p>
             </div>
             <div className="flex items-center gap-2">
               <Star className="w-5 h-5 text-gray-300" />
-              <p>{labels.dailyReader}</p>
+              <p>{currentLabels.dailyReader}</p>
             </div>
           </div>
         </Card>

@@ -1,195 +1,106 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { Search, Heart, BookOpen, Gamepad2, Sun, Phone, User, Hospital, PhoneCall, Moon, Star } from 'lucide-react';
-import { toast } from "@/components/ui/use-toast";
-import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useState } from 'react';
+import { useUserPreferences } from "@/contexts/UserPreferencesContext";
+import { Book, GamepadIcon, HeartHandshake, HelpCircle } from "lucide-react";
+
+const menuItems = {
+  english: [
+    {
+      icon: GamepadIcon,
+      title: "Games",
+      description: "Play engaging games designed for seniors",
+      path: "/games"
+    },
+    {
+      icon: HeartHandshake,
+      title: "Talk to Someone",
+      description: "Have a conversation with an AI companion",
+      path: "/companions"
+    },
+    {
+      icon: Book,
+      title: "Daily Readings",
+      description: "Enjoy daily readings and stories",
+      path: "/daily-readings"
+    },
+    {
+      icon: HelpCircle,
+      title: "Help & Information",
+      description: "Get help and learn how to use the app",
+      path: "/info-assistant"
+    }
+  ],
+  hindi: [
+    {
+      icon: GamepadIcon,
+      title: "खेल",
+      description: "वरिष्ठ नागरिकों के लिए डिज़ाइन किए गए खेल खेलें",
+      path: "/games"
+    },
+    {
+      icon: HeartHandshake,
+      title: "किसी से बात करें",
+      description: "एआई साथी से बातचीत करें",
+      path: "/companions"
+    },
+    {
+      icon: Book,
+      title: "दैनिक पाठ",
+      description: "दैनिक पाठ और कहानियों का आनंद लें",
+      path: "/daily-readings"
+    },
+    {
+      icon: HelpCircle,
+      title: "सहायता और जानकारी",
+      description: "ऐप का उपयोग करने में मदद और जानकारी प्राप्त करें",
+      path: "/info-assistant"
+    }
+  ]
+};
+
+const welcomeMessages = {
+  english: {
+    greeting: "Welcome",
+    subtitle: "What would you like to do today?"
+  },
+  hindi: {
+    greeting: "स्वागत है",
+    subtitle: "आज आप क्या करना चाहेंगे?"
+  }
+};
 
 const Home = () => {
   const navigate = useNavigate();
-  const { preferences, updateUserName, toggleTheme, toggleFavorite, isFavorite } = useUserPreferences();
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [tempName, setTempName] = useState(preferences.userName);
-
-  const handleCall = (name: string, number: string) => {
-    toast({
-      title: `Calling ${name}`,
-      description: `Dialing ${number}...`,
-    });
-  };
-
-  const handleNameSubmit = () => {
-    updateUserName(tempName);
-    setIsEditingName(false);
-    toast({
-      title: "Name Updated",
-      description: `Welcome, ${tempName}!`,
-    });
-  };
-
-  const features = [
-    { id: 'info-assistant', title: 'Information Assistant', icon: Search, path: '/info-assistant' },
-    { id: 'companions', title: 'Talk to Someone', icon: Heart, path: '/companions' },
-    { id: 'daily-readings', title: 'Daily Readings', icon: BookOpen, path: '/daily-readings' },
-    { id: 'games', title: 'Games', icon: Gamepad2, path: '/games' },
-  ];
+  const { preferences } = useUserPreferences();
+  const currentMenuItems = menuItems[preferences.language];
+  const messages = welcomeMessages[preferences.language];
 
   return (
-    <div className="min-h-screen bg-background p-6 space-y-8">
-      <div className="max-w-xl mx-auto">
-        <div className="relative mb-8">
-          <div className="flex items-center justify-between mb-4">
-            {preferences.theme === 'light' ? (
-              <Sun className="w-10 h-10 text-[#FFDAB9] cursor-pointer" onClick={toggleTheme} />
-            ) : (
-              <Moon className="w-10 h-10 text-[#FFDAB9] cursor-pointer" onClick={toggleTheme} />
-            )}
-            <h1 className="text-4xl font-rozha text-accent text-center">
-              Senior Connect
-            </h1>
-            <div className="w-10" />
-          </div>
-          {isEditingName ? (
-            <div className="flex items-center gap-2 justify-center">
-              <Input
-                value={tempName}
-                onChange={(e) => setTempName(e.target.value)}
-                placeholder="Enter your name"
-                className="max-w-[200px]"
-              />
-              <Button onClick={handleNameSubmit}>Save</Button>
-            </div>
-          ) : (
-            <p className="text-xl font-poppins text-muted-foreground text-center cursor-pointer" onClick={() => setIsEditingName(true)}>
-              {preferences.userName ? `Welcome, ${preferences.userName}!` : "Click to add your name"}
-            </p>
-          )}
+    <div className="min-h-screen bg-pattern p-6">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="text-center">
+          <h1 className="text-4xl font-rozha text-accent mb-2">
+            {messages.greeting}, {preferences.userName}
+          </h1>
+          <p className="text-xl text-muted-foreground">
+            {messages.subtitle}
+          </p>
         </div>
 
-        {/* Emergency Contacts Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-rozha text-accent mb-4">Emergency Contacts</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <Card 
-              className="p-4 cursor-pointer hover:shadow-lg transition-shadow bg-white"
-              onClick={() => handleCall("Beta", "+91 98765 43210")}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {currentMenuItems.map((item) => (
+            <Card
+              key={item.path}
+              className="p-6 cursor-pointer hover:border-accent transition-colors"
+              onClick={() => navigate(item.path)}
             >
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-full bg-primary/20">
-                  <User className="w-6 h-6 text-accent" />
-                </div>
-                <div className="text-left">
-                  <p className="font-semibold text-accent">Beta</p>
-                  <p className="text-sm text-muted-foreground">+91 98765 43210</p>
+              <div className="flex items-center gap-4">
+                <item.icon className="w-8 h-8 text-accent" />
+                <div>
+                  <h2 className="text-2xl font-rozha text-accent mb-2">{item.title}</h2>
+                  <p className="text-muted-foreground">{item.description}</p>
                 </div>
               </div>
-            </Card>
-
-            <Card 
-              className="p-4 cursor-pointer hover:shadow-lg transition-shadow bg-white"
-              onClick={() => handleCall("Behan", "+91 98765 43211")}
-            >
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-full bg-primary/20">
-                  <User className="w-6 h-6 text-accent" />
-                </div>
-                <div className="text-left">
-                  <p className="font-semibold text-accent">Behan</p>
-                  <p className="text-sm text-muted-foreground">+91 98765 43211</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card 
-              className="p-4 cursor-pointer hover:shadow-lg transition-shadow bg-white"
-              onClick={() => handleCall("Local Hospital", "102")}
-            >
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-full bg-primary/20">
-                  <Hospital className="w-6 h-6 text-accent" />
-                </div>
-                <div className="text-left">
-                  <p className="font-semibold text-accent">Hospital</p>
-                  <p className="text-sm text-muted-foreground">102</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card 
-              className="p-4 cursor-pointer hover:shadow-lg transition-shadow bg-white"
-              onClick={() => handleCall("Ambulance", "108")}
-            >
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-full bg-primary/20">
-                  <PhoneCall className="w-6 h-6 text-accent" />
-                </div>
-                <div className="text-left">
-                  <p className="font-semibold text-accent">Ambulance</p>
-                  <p className="text-sm text-muted-foreground">108</p>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </div>
-        
-        {/* Favorites Section */}
-        {preferences.favorites.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-rozha text-accent mb-4">Your Favorites</h2>
-            <div className="grid grid-cols-1 gap-4">
-              {features
-                .filter(feature => isFavorite(feature.id))
-                .map(feature => (
-                  <Card 
-                    key={feature.id}
-                    className="feature-card group"
-                    onClick={() => navigate(feature.path)}
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="p-4 rounded-full bg-primary/20 group-hover:bg-primary/30 transition-colors">
-                        <feature.icon className="w-8 h-8 text-accent" />
-                      </div>
-                      <div className="text-left">
-                        <h2 className="text-2xl font-rozha text-accent">{feature.title}</h2>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-            </div>
-          </div>
-        )}
-
-        {/* Main Features */}
-        <div className="grid grid-cols-1 gap-8">
-          {features.map(feature => (
-            <Card 
-              key={feature.id}
-              className="feature-card group relative"
-              onClick={() => navigate(feature.path)}
-            >
-              <div className="flex items-center space-x-4">
-                <div className="p-4 rounded-full bg-primary/20 group-hover:bg-primary/30 transition-colors">
-                  <feature.icon className="w-8 h-8 text-accent" />
-                </div>
-                <div className="text-left">
-                  <h2 className="text-2xl font-rozha text-accent">{feature.title}</h2>
-                </div>
-              </div>
-              <Star
-                className={`absolute top-4 right-4 w-6 h-6 cursor-pointer ${
-                  isFavorite(feature.id) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
-                }`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleFavorite(feature.id);
-                  toast({
-                    title: isFavorite(feature.id) ? "Removed from favorites" : "Added to favorites",
-                    description: `${feature.title} has been ${isFavorite(feature.id) ? "removed from" : "added to"} your favorites.`,
-                  });
-                }}
-              />
             </Card>
           ))}
         </div>
