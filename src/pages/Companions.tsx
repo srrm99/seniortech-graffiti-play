@@ -177,7 +177,7 @@ const Companions = () => {
             inputs: [chunk],
             language_code: 'hi-IN',
             target_language_code: 'hi-IN',
-            model: 'bulbul:v1'  // Changed from 'saarika:v1' to 'bulbul:v1'
+            model: 'bulbul:v1'
           })
         });
 
@@ -200,7 +200,10 @@ const Companions = () => {
             URL.revokeObjectURL(audioUrl);
             resolve(null);
           };
-          audio.play();
+          audio.play().catch(error => {
+            console.error('Audio playback error:', error);
+            resolve(null);
+          });
         });
       }
 
