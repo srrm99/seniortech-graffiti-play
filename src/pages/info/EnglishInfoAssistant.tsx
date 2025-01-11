@@ -51,6 +51,24 @@ const EnglishInfoAssistant = () => {
     }
   }, []);
 
+  const toggleListening = () => {
+    if (!recognition) {
+      toast({
+        title: "Not Supported",
+        description: "Speech recognition is not supported in your browser.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isListening) {
+      recognition.stop();
+    } else {
+      recognition.start();
+      setIsListening(true);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!query.trim()) return;
     
