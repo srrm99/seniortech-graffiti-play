@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { useUserPreferences } from "@/contexts/UserPreferencesContext";
-import { Book, GamepadIcon, HeartHandshake, HelpCircle } from "lucide-react";
+import { Book, GamepadIcon, HeartHandshake, MessagesSquare } from "lucide-react";
 import { motion } from "framer-motion";
 
 const menuItems = {
@@ -25,10 +25,10 @@ const menuItems = {
       path: "/readings/english",
     },
     {
-      Icon: HelpCircle,
-      title: "Help & Information",
-      description: "Get help and learn how to use the app",
-      path: "/info-assistant",
+      Icon: MessagesSquare,
+      title: "Ask Me Anything",
+      description: "Get latest news, schemes info & more with AI assistance",
+      path: "/info-assistant/english",
     }
   ],
   hindi: [
@@ -51,10 +51,10 @@ const menuItems = {
       path: "/readings/hindi",
     },
     {
-      Icon: HelpCircle,
-      title: "सहायता और जानकारी",
-      description: "ऐप का उपयोग करने में मदद और जानकारी प्राप्त करें",
-      path: "/info-assistant",
+      Icon: MessagesSquare,
+      title: "कुछ भी पूछें",
+      description: "एआई सहायता से समाचार, योजनाओं की जानकारी और बहुत कुछ प्राप्त करें",
+      path: "/info-assistant/hindi",
     }
   ]
 };
