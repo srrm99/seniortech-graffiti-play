@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Mic, MicOff } from "lucide-react";
+import { ArrowLeft, Mic, MicOff, VolumeIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -52,8 +52,10 @@ const Companions = () => {
   const [conversation, setConversationHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isPlaying, setIsPlaying] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -139,6 +141,67 @@ const Companions = () => {
         description: "Failed to convert speech to text. Please try again.",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleTextToSpeech = async (text: string, messageId: string) => {
+    try {
+      const response = await fetch('https://api.sarvam.ai/text-to-speech', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'api-subscription-key': '044317b1-21ac-402f-9b65-1d98a3dcf2fd'
+        },
+        body: JSON.stringify({
+          text: text,
+          language_code: 'hi-IN',
+          model: 'saarika:v1'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to convert text to speech');
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        setIsPlaying(null);
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      setIsPlaying(messageId);
+      audio.play();
+
+      toast({
+        title: "Playing audio",
+        description: "The message is being played...",
+      });
+    } catch (error: any) {
+      console.error('Text to speech error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to play the message. Please try again.",
+        variant: "destructive",
+      });
+      setIsPlaying(null);
+    }
+  };
+
+  const stopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+      setIsPlaying(null);
     }
   };
 
@@ -279,15 +342,37 @@ const Companions = () => {
                         : 'bg-accent/10 mr-12'
                     }`}
                   >
-                    {msg.role === 'assistant' ? (
-                      <ReactMarkdown 
-                        className="prose prose-sm max-w-none dark:prose-invert"
-                      >
-                        {msg.content}
-                      </ReactMarkdown>
-                    ) : (
-                      msg.content
-                    )}
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex-1">
+                        {msg.role === 'assistant' ? (
+                          <ReactMarkdown 
+                            className="prose prose-sm max-w-none dark:prose-invert"
+                          >
+                            {msg.content}
+                          </ReactMarkdown>
+                        ) : (
+                          msg.content
+                        )}
+                      </div>
+                      {msg.role === 'assistant' && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            if (isPlaying === `msg-${index}`) {
+                              stopAudio();
+                            } else {
+                              handleTextToSpeech(msg.content, `msg-${index}`);
+                            }
+                          }}
+                          className="flex-shrink-0"
+                        >
+                          <VolumeIcon 
+                            className={`h-5 w-5 ${isPlaying === `msg-${index}` ? 'text-accent' : ''}`}
+                          />
+                        </Button>
+                      )}
+                    </div>
                     {msg.role === 'assistant' && index === conversation.length - 1 && isStreaming && (
                       <span className="inline-block animate-pulse">▊</span>
                     )}
@@ -319,7 +404,10 @@ const Companions = () => {
               <Button 
                 variant="outline" 
                 className="mt-4"
-                onClick={() => setSelectedPersona(null)}
+                onClick={() => {
+                  stopAudio();
+                  setSelectedPersona(null);
+                }}
               >
                 Choose Different Companion
               </Button>
