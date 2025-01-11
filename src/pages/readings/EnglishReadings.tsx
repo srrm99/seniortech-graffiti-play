@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
@@ -48,7 +48,6 @@ const EnglishReadings = () => {
   const [readings, setReadings] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   const LOCAL_LLM_URL = "https://johnaic.pplus.ai/openai/chat/completions";
   const LOCAL_LLM_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImYwZGRiNTgzLTEzZTAtNDQyZS1hZTA0LTQ5ZmJjZTFmODhiYSJ9.djeA_RnaSvMyR9qYnz_2GW08jRq9aC5LG5bOEWdvBL4";
@@ -100,14 +99,14 @@ const EnglishReadings = () => {
     }
   };
 
-  const handleDragStart = (event: React.MouseEvent | React.TouchEvent) => {
+  const handleDragStart = (event: React.MouseEvent<Element, MouseEvent> | React.TouchEvent<Element>) => {
     const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
     const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
     setDragStart({ x: clientX, y: clientY });
   };
 
   const handleDragEnd = (
-    event: MouseEvent | TouchEvent | PointerEvent,
+    _: MouseEvent | TouchEvent | PointerEvent,
     info: PanInfo
   ) => {
     const swipeThreshold = 100;

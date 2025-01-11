@@ -100,14 +100,14 @@ const HindiReadings = () => {
     }
   };
 
-  const handleDragStart = (event: React.MouseEvent | React.TouchEvent) => {
+  const handleDragStart = (event: React.MouseEvent<Element, MouseEvent> | React.TouchEvent<Element>) => {
     const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
     const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
     setDragStart({ x: clientX, y: clientY });
   };
 
   const handleDragEnd = (
-    event: MouseEvent | TouchEvent | PointerEvent,
+    _: MouseEvent | TouchEvent | PointerEvent,
     info: PanInfo
   ) => {
     const swipeThreshold = 100;
