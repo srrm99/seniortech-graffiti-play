@@ -191,19 +191,30 @@ const Companions = () => {
         const audioUrl = URL.createObjectURL(audioBlob);
 
         // Create and play audio
-        const audio = new Audio(audioUrl);
+        const audio = new Audio();
+        audio.src = audioUrl;
         audioRef.current = audio;
 
         // Wait for the current chunk to finish playing before proceeding
-        await new Promise((resolve) => {
+        await new Promise((resolve, reject) => {
           audio.onended = () => {
             URL.revokeObjectURL(audioUrl);
             resolve(null);
           };
-          audio.play().catch(error => {
-            console.error('Audio playback error:', error);
-            resolve(null);
-          });
+          audio.onerror = (e) => {
+            console.error('Audio playback error:', e);
+            URL.revokeObjectURL(audioUrl);
+            reject(new Error('Audio playback failed'));
+          };
+          audio.load();
+          const playPromise = audio.play();
+          if (playPromise) {
+            playPromise.catch(error => {
+              console.error('Audio playback error:', error);
+              URL.revokeObjectURL(audioUrl);
+              reject(error);
+            });
+          }
         });
       }
 
@@ -448,3 +459,4 @@ const Companions = () => {
 };
 
 export default Companions;
+
