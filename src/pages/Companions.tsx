@@ -167,17 +167,20 @@ const Companions = () => {
         }
 
         console.log('Processing chunk:', chunk);
-        const response = await fetch('https://api.sarvam.ai/text-to-speech', {
+        const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/pFZP5JQG7iQjIQuC4Bku', {
           method: 'POST',
           headers: {
+            'Accept': 'audio/mpeg',
             'Content-Type': 'application/json',
-            'api-subscription-key': '044317b1-21ac-402f-9b65-1d98a3dcf2fd'
+            'xi-api-key': 'sk-787c50eea4a25224ea5502b03c3bf5da89225e9bf23d1cff'
           },
           body: JSON.stringify({
-            inputs: [chunk],
-            language_code: 'hi-IN',
-            target_language_code: 'hi-IN',
-            model: 'bulbul:v1'
+            text: chunk,
+            model_id: "eleven_multilingual_v2",
+            voice_settings: {
+              stability: 0.5,
+              similarity_boost: 0.75
+            }
           })
         });
 
@@ -459,4 +462,3 @@ const Companions = () => {
 };
 
 export default Companions;
-
