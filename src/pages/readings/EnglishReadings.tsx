@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, MoveHorizontal } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
@@ -19,25 +19,25 @@ const readingTypes: ReadingType[] = [
     id: 'devotional',
     title: 'Daily Devotional',
     description: 'Daily spiritual readings and reflections',
-    prompt: 'Generate an inspiring devotional reading in English about faith, hope, and spiritual growth. Include a short reflection question at the end.'
+    prompt: 'Generate a brief, 2-paragraph devotional reading in English about faith and hope. Include one short reflection question at the end. Keep it simple and uplifting.'
   },
   {
     id: 'motivational',
     title: 'Motivational',
     description: 'Inspiring stories and thoughts',
-    prompt: 'Create a motivational reading in English with an inspiring real-life story and a powerful message about perseverance and growth.'
+    prompt: 'Create a short motivational message in English (2-3 paragraphs) with a simple inspiring message about staying positive. Include one practical tip.'
   },
   {
     id: 'story',
     title: 'Story',
     description: 'Meaningful short stories',
-    prompt: 'Write a heartwarming short story in English with moral values and life lessons that seniors can relate to.'
+    prompt: 'Write a very short story in English (maximum 3 paragraphs) with a clear moral lesson that seniors can relate to. Focus on family, friendship, or kindness.'
   },
   {
     id: 'wisdom',
     title: 'Daily Wisdom',
     description: 'Practical wisdom for daily life',
-    prompt: 'Share a piece of practical wisdom or life advice in English, drawing from traditional knowledge and modern insights.'
+    prompt: 'Share one piece of practical wisdom in English (1-2 paragraphs) drawing from traditional values. Keep it concise and actionable.'
   }
 ];
 
@@ -122,7 +122,7 @@ const EnglishReadings = () => {
     }
   };
 
-  return (
+return (
     <div className="min-h-screen bg-pattern p-6">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
@@ -170,6 +170,11 @@ const EnglishReadings = () => {
               </Button>
             </div>
 
+            <div className="bg-accent/10 p-4 rounded-lg flex items-center justify-center gap-2 text-lg">
+              <MoveHorizontal className="w-6 h-6" />
+              <p>Swipe left or right to read more stories</p>
+            </div>
+
             <div className="relative h-[500px] w-full overflow-hidden touch-none">
               <AnimatePresence initial={false}>
                 <motion.div
@@ -195,7 +200,7 @@ const EnglishReadings = () => {
               <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
                 <Button
                   variant="outline"
-                  size="icon"
+                  size="lg"
                   className="rounded-full bg-white/90 hover:bg-white"
                   onClick={swipeRight}
                   disabled={currentIndex === 0}
@@ -205,7 +210,7 @@ const EnglishReadings = () => {
                 </Button>
                 <Button
                   variant="outline"
-                  size="icon"
+                  size="lg"
                   className="rounded-full bg-white/90 hover:bg-white"
                   onClick={swipeLeft}
                   disabled={currentIndex === readings.length - 1}
