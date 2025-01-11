@@ -1,87 +1,38 @@
-import { useState, useEffect } from 'react';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Send, Mic, MicOff } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
-import { useToast } from "@/components/ui/use-toast";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft } from "lucide-react";
+import { useUserPreferences } from "@/contexts/UserPreferencesContext";
+import { toast } from "@/components/ui/use-toast";
 
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-}
-
-const InfoAssistant = () => {
-  const [query, setQuery] = useState('');
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [isListening, setIsListening] = useState(false);
+const Help = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { preferences } = useUserPreferences();
+  const [query, setQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState("");
 
-  let recognition: SpeechRecognition | null = null;
-
-  useEffect(() => {
-    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-      const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognition = new SpeechRecognitionAPI();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        setQuery(transcript);
-        setIsListening(false);
-      };
-
-      recognition.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
-        setIsListening(false);
-        toast({
-          title: "Error",
-          description: "Failed to recognize speech. Please try again.",
-          variant: "destructive",
-        });
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-    }
-  }, []);
-
-  const toggleListening = () => {
-    if (!recognition) {
+  const handleSearch = async () => {
+    if (!query.trim()) {
+      const message = preferences.language === 'english'
+        ? "Please enter your question"
+        : "कृपया अपना प्रश्न दर्ज करें";
+      
       toast({
-        title: "Not Supported",
-        description: "Speech recognition is not supported in your browser.",
+        title: message,
         variant: "destructive",
       });
       return;
     }
 
-    if (isListening) {
-      recognition.stop();
-    } else {
-      recognition.start();
-      setIsListening(true);
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!query.trim()) return;
-    
-    const userMessage: Message = { role: 'user', content: query };
-    setMessages(prev => [...prev, userMessage]);
-    setLoading(true);
-    setQuery('');
-    
+    setIsLoading(true);
     try {
       const response = await fetch('https://api.perplexity.ai/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': 'Bearer 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',
+          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -89,138 +40,96 @@ const InfoAssistant = () => {
           messages: [
             {
               role: 'system',
-              content: 'You are a helpful assistant for senior citizens in India. Be respectful, patient, and clear in your responses. Format your responses in markdown for better readability.'
+              content: preferences.language === 'english'
+                ? 'You are a helpful assistant for senior citizens. Provide clear, simple explanations with large, easy-to-read formatting. Focus on practical information about news, government schemes, health tips, and general knowledge.'
+                : 'आप वरिष्ठ नागरिकों के लिए एक सहायक सहायक हैं। बड़े, पढ़ने में आसान प्रारूप के साथ स्पष्ट, सरल स्पष्टीकरण प्रदान करें। समाचार, सरकारी योजनाओं, स्वास्थ्य युक्तियों और सामान्य ज्ञान के बारे में व्यावहारिक जानकारी पर ध्यान दें।'
             },
-            ...messages.map(msg => ({
-              role: msg.role,
-              content: msg.content
-            })),
             {
               role: 'user',
               content: query
             }
           ],
-          temperature: 0.7,
-          stream: true,
+          temperature: 0.2,
+          max_tokens: 1000,
         }),
       });
 
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('No reader available');
-
-      let assistantMessage = { role: 'assistant' as const, content: '' };
-      setMessages(prev => [...prev, assistantMessage]);
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = new TextDecoder().decode(value);
-        const lines = chunk.split('\n').filter(line => line.trim() !== '');
-        
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const jsonString = line.slice(6);
-            if (jsonString === '[DONE]') continue;
-            
-            try {
-              const jsonData = JSON.parse(jsonString);
-              const content = jsonData.choices[0].delta.content;
-              if (content) {
-                assistantMessage.content += content;
-                setMessages(prev => [...prev.slice(0, -1), { ...assistantMessage }]);
-              }
-            } catch (e) {
-              console.error('Error parsing JSON:', e);
-            }
-          }
-        }
-      }
+      const data = await response.json();
+      setResult(data.choices[0].message.content);
     } catch (error) {
       console.error('Error:', error);
+      const errorMessage = preferences.language === 'english'
+        ? "Sorry, there was an error. Please try again."
+        : "क्षमा करें, एक त्रुटि हुई। कृपया पुनः प्रयास करें।";
+      
       toast({
-        title: "Error",
-        description: "Failed to get a response. Please try again later.",
+        title: errorMessage,
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
-    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-background p-6 space-y-8">
-      <div className="flex items-center justify-between">
-        <button 
-          onClick={() => navigate('/home')}
-          className="flex items-center text-accent hover:text-accent/80"
-        >
-          <ArrowLeft className="w-6 h-6 mr-2" />
-          Back
-        </button>
-        <h1 className="text-3xl font-rozha text-accent">Information Assistant</h1>
-        <div className="w-10" /> {/* Spacer for centering */}
-      </div>
-
-      <Card className="p-6 space-y-4 bg-white shadow-lg rounded-xl border-2 border-accent/20 min-h-[600px] flex flex-col">
-        <ScrollArea className="flex-grow mb-4 pr-4">
-          <div className="space-y-4">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <Card
-                  className={`max-w-[80%] p-4 ${
-                    message.role === 'user'
-                      ? 'bg-accent text-white'
-                      : 'bg-primary/50 border-2 border-accent/20'
-                  }`}
-                >
-                  <ReactMarkdown>{message.content}</ReactMarkdown>
-                </Card>
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
-
-        <div className="relative mt-auto">
-          <textarea
-            className="w-full min-h-[100px] rounded-lg border-2 border-accent/20 p-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-            placeholder="Ask me anything - news, services, or general information..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit();
-              }
-            }}
-          />
-          <Button 
-            className="absolute right-2 bottom-2 bg-accent hover:bg-accent/90 text-white"
-            onClick={toggleListening}
+    <div className="min-h-screen bg-pattern p-6">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="flex items-center justify-between">
+          <Button
             variant="ghost"
-            size="icon"
+            className="flex items-center gap-2"
+            onClick={() => navigate("/home")}
           >
-            {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            <ArrowLeft className="w-5 h-5" />
+            {preferences.language === 'english' ? 'Back to Home' : 'होम पर वापस जाएं'}
           </Button>
         </div>
-        
-        <Button 
-          className="w-full bg-accent hover:bg-accent/90 text-white font-semibold"
-          onClick={handleSubmit}
-          disabled={loading}
-        >
-          {loading ? 'Thinking...' : (
-            <>
-              <Send className="w-4 h-4 mr-2" />
-              Send
-            </>
+
+        <Card className="p-6 space-y-6">
+          <h1 className="text-3xl font-rozha text-accent text-center">
+            {preferences.language === 'english' ? 'Ask Anything' : 'कुछ भी पूछें'}
+          </h1>
+          
+          <p className="text-center text-lg text-muted-foreground">
+            {preferences.language === 'english'
+              ? "Get information about news, government schemes, or any topic you're interested in"
+              : "समाचार, सरकारी योजनाओं या किसी भी विषय के बारे में जानकारी प्राप्त करें"}
+          </p>
+
+          <div className="flex gap-4">
+            <Input
+              className="text-lg p-6"
+              placeholder={preferences.language === 'english' 
+                ? "Type your question here..."
+                : "यहां अपना प्रश्न टाइप करें..."}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+            />
+            <Button 
+              className="text-lg px-8"
+              onClick={handleSearch}
+              disabled={isLoading}
+            >
+              {isLoading 
+                ? (preferences.language === 'english' ? 'Searching...' : 'खोज रहा है...')
+                : (preferences.language === 'english' ? 'Search' : 'खोजें')}
+            </Button>
+          </div>
+
+          {result && (
+            <Card className="p-6 mt-6">
+              <div className="prose prose-lg max-w-none">
+                <div className="text-lg leading-relaxed whitespace-pre-wrap">
+                  {result}
+                </div>
+              </div>
+            </Card>
           )}
-        </Button>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 };
 
-export default InfoAssistant;
+export default Help;
