@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Mic, MicOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -51,6 +51,9 @@ const Companions = () => {
   const [message, setMessage] = useState<string>('');
   const [conversation, setConversationHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -59,6 +62,84 @@ const Companions = () => {
 
   const handlePersonaSelect = (persona: Persona) => {
     setSelectedPersona(persona);
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      chunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunksRef.current.push(e.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(chunksRef.current, { type: 'audio/wav' });
+        await handleSpeechToText(audioBlob);
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      toast({
+        title: "Recording Started",
+        description: "Speak in Hindi...",
+      });
+    } catch (error: any) {
+      console.error('Error accessing microphone:', error);
+      toast({
+        title: "Error",
+        description: "Could not access microphone. Please check permissions.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+    }
+  };
+
+  const handleSpeechToText = async (audioBlob: Blob) => {
+    const formData = new FormData();
+    formData.append('file', audioBlob);
+    formData.append('language_code', 'hi-IN');
+    formData.append('model', 'saarika:v1');
+    formData.append('with_timestamps', 'false');
+
+    try {
+      const response = await fetch('https://api.sarvam.ai/speech-to-text', {
+        method: 'POST',
+        headers: {
+          'api-subscription-key': '044317b1-21ac-402f-9b65-1d98a3dcf2fd'
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error('Speech to text conversion failed');
+      }
+
+      const data = await response.json();
+      setMessage(data.transcript);
+      toast({
+        title: "Speech Converted",
+        description: "Your speech has been converted to text.",
+      });
+    } catch (error) {
+      console.error('Speech to text error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to convert speech to text. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSendMessage = async () => {
@@ -226,6 +307,13 @@ const Companions = () => {
                     }
                   }}
                 />
+                <Button
+                  variant={isRecording ? "destructive" : "secondary"}
+                  onClick={isRecording ? stopRecording : startRecording}
+                  className="w-12"
+                >
+                  {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                </Button>
                 <Button onClick={handleSendMessage}>Send</Button>
               </div>
               <Button 
